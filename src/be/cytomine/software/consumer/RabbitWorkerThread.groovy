@@ -3,6 +3,7 @@ package src.be.cytomine.software.consumer
 import com.rabbitmq.client.QueueingConsumer
 import com.rabbitmq.client.Channel
 import groovy.json.JsonSlurper
+import groovy.util.logging.Log4j
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -21,6 +22,7 @@ import java.util.concurrent.Executors
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@Log4j
 class RabbitWorkerThread implements Runnable{
 
     def mapMessage
@@ -35,18 +37,12 @@ class RabbitWorkerThread implements Runnable{
 
         while(true) {
 
-            println "Thread waiting on queue : "+ mapMessage["name"]
+            log.info "Thread waiting on queue : "+ mapMessage["name"]
 
             QueueingConsumer.Delivery delivery = consumer.nextDelivery();
             String innerMessage = new String(delivery.getBody());
 
             ArrayList args = slurper.parseText(innerMessage) as ArrayList
-
-
-            //String job = args.join(" ")
-
-            //command = args[0]
-            //argsList = args.subList(1, args.size())
 
             Runnable jobExecution = new JobExecutionThread(commandToExecute: args, softwareName: mapMessage["name"])
             ExecutorService execute = Executors.newSingleThreadExecutor();

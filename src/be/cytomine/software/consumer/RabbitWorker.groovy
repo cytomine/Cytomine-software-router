@@ -5,6 +5,7 @@ import be.cytomine.client.collections.AmqpQueueCollection
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
+import groovy.util.logging.Log4j
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -23,6 +24,7 @@ import java.util.concurrent.Executors
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@Log4j
 class RabbitWorker {
 
     static def configFile = new ConfigSlurper().parse(new File("config.groovy").toURI().toURL())
@@ -33,18 +35,18 @@ class RabbitWorker {
 
     public static void main(String[] args) {
 
-        println "GROOVY_HOME : "+ System.getenv("GROOVY_HOME")
-        println "PATH : " + System.getenv("PATH")
+        log.info "GROOVY_HOME : " + System.getenv("GROOVY_HOME")
+        log.info "PATH : " + System.getenv("PATH")
 
         // Create the directory for logs
-        def logsDirectory = new File((String)configFile.logsDirectory)
-        if(!logsDirectory.exists()) {
+        def logsDirectory = new File((String) configFile.logsDirectory)
+        if (!logsDirectory.exists()) {
             logsDirectory.mkdirs()
         }
 
         // Create the directory for software data
-        def dataDirectory = new File((String)configFile.dataDirectory)
-        if(!dataDirectory.exists()) {
+        def dataDirectory = new File((String) configFile.dataDirectory)
+        if (!dataDirectory.exists()) {
             dataDirectory.mkdirs()
         }
 
@@ -63,8 +65,8 @@ class RabbitWorker {
 
     static getAlreadyExistingSoftwares() {
         AmqpQueueCollection amqpCollection = cytomine.getAmqpQueue()
-        for(int i = 0; i < amqpCollection.size(); i++) {
-            if(!amqpCollection.get(i).getStr("name").equals("queueCommunication")) {
+        for (int i = 0; i < amqpCollection.size(); i++) {
+            if (!amqpCollection.get(i).getStr("name").equals("queueCommunication")) {
                 listQueues << [name: amqpCollection.get(i).getStr("name"), host: amqpCollection.get(i).getStr("host"), exchange: amqpCollection.get(i).getStr("exchange")]
             }
         }
@@ -79,7 +81,7 @@ class RabbitWorker {
             factory.setUsername(configFile.rabbitUsername as String)
             factory.setPassword(configFile.rabbitPassword as String)
             channel = connection.createChannel()
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace()
         }
     }
@@ -99,33 +101,4 @@ class RabbitWorker {
         }
     }
 
-
-
-
-
-//    static launchThreads() {
-//        try {
-//            channel.exchangeDeclare(configFile.exchangeMain as String, "direct", true)
-//            channel.queueDeclare(configFile.queueMain as String, true, false, false, null)
-//            channel.queueBind(configFile.queueMain as String, configFile.exchangeMain as String, "")
-//        } catch(IOException e) {
-//            e.printStackTrace()
-//        }
-//
-//        String message = "start"
-//
-//        QueueingConsumer consumer = new QueueingConsumer(channel)
-//        channel.basicConsume(configFile.queueMain as String, true, consumer)
-//
-//        while(!message.equals("endOfSetup")) {
-//            QueueingConsumer.Delivery delivery = consumer.nextDelivery()
-//            message = new String(delivery.getBody())
-//            println "Message : " + message
-//
-//            // List all the queues (softwares) already existing
-//            if(!message.equals("endOfSetup")) {
-//                listQueues.add(message)
-//            }
-//        }
-//    }
 }

@@ -1,4 +1,7 @@
 package src.be.cytomine.software.consumer
+
+import groovy.util.logging.Log4j
+
 /*
  * Copyright (c) 2009-2015. Authors: see NOTICE file.
  *
@@ -14,6 +17,7 @@ package src.be.cytomine.software.consumer
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@Log4j
 class JobExecutionThread implements Runnable{
 
     ArrayList commandToExecute
@@ -27,7 +31,7 @@ class JobExecutionThread implements Runnable{
         logFileJob.getParentFile().mkdirs();
         logFileJob.createNewFile();
 
-        println "Job to execute : " + commandToExecute
+        log.info "Job to execute : " + commandToExecute
 
         def process = new ProcessBuilder(commandToExecute)
         process.directory(jobDirectory)

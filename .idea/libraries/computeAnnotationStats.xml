@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="computeAnnotationStats">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/algo/computeAnnotationStats/jts-1.13.jar!/" />
+      <root url="jar://$USER_HOME$/Bureau/rabbitmq-client.jar!/" />
+      <root url="jar://$USER_HOME$/Téléchargements/cytomine-java-client-1.0-SNAPSHOT-jar-with-dependencies (2).jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="file://$USER_HOME$/Bureau/rabbitmq-java-client-javadoc-3.4.4" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/Téléchargements/cytomine-java-client-1.0-SNAPSHOT-jar-with-dependencies (2).jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -8,16 +8,26 @@
   <build>
   </build>
   <properties>
-    <sonar.sources>src/</sonar.sources>
-    <sonar.language>java</sonar.language>
+    <sonar.sources>src</sonar.sources>
+    <sonar.language>grvy</sonar.language>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
    <sonar.surefire.reportsPath>build/test/results</sonar.surefire.reportsPath>
        
-   <sonar.jdbc.url>jdbc:postgresql://localhost/sonar</sonar.jdbc.url>
+   <!--<sonar.jdbc.url>jdbc:postgresql://localhost/sonar</sonar.jdbc.url>
    <sonar.jdbc.driver>org.postgresql.Driver</sonar.jdbc.driver>
    <sonar.jdbc.username>postgres</sonar.jdbc.username>
-   <sonar.jdbc.password></sonar.jdbc.password>
+   <sonar.jdbc.password></sonar.jdbc.password>-->
+
+    <sonar.groovy.junit.reportsPath>target/test-reports</sonar.groovy.junit.reportsPath>
+        <sonar.groovy.cobertura.reportPath>target/test-reports/cobertura/coverage.xml</sonar.groovy.cobertura.reportPath>
+        <sonar.jdbc.url>jdbc:postgresql://localhost/sonar</sonar.jdbc.url>
+            <sonar.jdbc.driver>org.postgresql.Driver</sonar.jdbc.driver>
+                <sonar.jdbc.username>postgres</sonar.jdbc.username>
+                    <sonar.jdbc.password></sonar.jdbc.password>
+                        <!-- test -->
+    <sonar.host.url>http://sonar.cytomine.be</sonar.host.url>
 
   </properties>
 </project> 
+

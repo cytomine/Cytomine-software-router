@@ -26,10 +26,17 @@ class JobExecutionThread implements Runnable{
 
     @Override
     void run() {
+        // Log file
         String logFile = softwareName + "-" + new Date().format('d-M-yyyy_hh-mm-ss-SSS').toString() + ".log"
         File logFileJob = new File((String)RabbitWorker.configFile.logsDirectory + logFile)
         logFileJob.getParentFile().mkdirs();
         logFileJob.createNewFile();
+
+        // Data directory for software data
+        def dataDirectory = new File((String)RabbitWorker.configFile.dataDirectory + softwareName + "-" + new Date().format('d-M-yyyy_hh-mm-ss-SSS').toString())
+        if (!dataDirectory.exists()) {
+            dataDirectory.mkdirs()
+        }
 
         log.info "Job to execute : " + commandToExecute
 

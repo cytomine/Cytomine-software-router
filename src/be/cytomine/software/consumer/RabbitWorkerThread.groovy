@@ -4,7 +4,6 @@ import com.rabbitmq.client.QueueingConsumer
 import com.rabbitmq.client.Channel
 import groovy.json.JsonSlurper
 import groovy.util.logging.Log4j
-
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 /*

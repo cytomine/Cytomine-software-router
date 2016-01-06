@@ -13,4 +13,4 @@ Cytomine-software-router maintains the communication between Cytomine-core & a r
 
 ## How to install it
 
-See our [Cytomine-bootstrap](https://github.com/cytomine/Cytomine-bootstrap) project to install it with Docker
+It is automatically installed with the Docker procedure. See our [Cytomine-bootstrap](https://github.com/cytomine/Cytomine-bootstrap).

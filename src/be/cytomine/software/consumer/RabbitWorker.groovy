@@ -77,9 +77,9 @@ class RabbitWorker {
         factory.setHost(configFile.rabbitAddress as String)
         channel = null
         try {
-            connection = factory.newConnection()
             factory.setUsername(configFile.rabbitUsername as String)
             factory.setPassword(configFile.rabbitPassword as String)
+            connection = factory.newConnection()
             channel = connection.createChannel()
         } catch (IOException e) {
             e.printStackTrace()

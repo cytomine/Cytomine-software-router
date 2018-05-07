@@ -32,10 +32,9 @@ class JobExecutionThread implements Runnable {
     def serverParameters
 
     @Override
-    void run() { // TODO: something's no working here
+    void run() { // TODO : check
         // Executes a job on a server using a processing method(slurm,...) and a communication method (SSH,...)
         serverJobId = processingMethod.executeJob(command, serverParameters)
-
         if (serverJobId == -1) {
             log.info("Job ${cytomineJobId} failed !")
             return
@@ -43,7 +42,7 @@ class JobExecutionThread implements Runnable {
 
         log.info("Job ${cytomineJobId} launched successfully !")
 
-        // Wait until the job has ended
+        // Wait until the end of the job
         while (processingMethod.isAlive(serverJobId)) {
             log.info("${serverJobId} is running !")
 
@@ -54,11 +53,11 @@ class JobExecutionThread implements Runnable {
         if (processingMethod.retrieveLogs(serverJobId, cytomineJobId)) {
             log.info("Logs retrieved successfully !")
 
-            def filePath = "./algo/logs/${cytomineJobId}.out"
+            def filePath = "${Main.configFile.logsDirectory}/${cytomineJobId}.out" // TODO : check
             def logFile = new File(filePath)
 
             if (logFile.exists()) {
-                // Upload the lof file as an attachedFile to the Cytomine-Core
+                // Upload the log file as an attachedFile to the Cytomine-core
                 Main.cytomine.uploadAttachedFile(filePath as String, "Job", cytomineJobId as Long)
 
                 // Remove the log file
@@ -74,15 +73,15 @@ class JobExecutionThread implements Runnable {
     }
 
     void kill() {
-        log.info("Try killing job")
-
         if (processingMethod.killJob(serverJobId)) {
             synchronized (runningJobs) {
                 runningJobs.remove(cytomineJobId)
             }
-            log.info("The job has been successfully killed !")
+            log.info("The job [${cytomineJobId}] has been killed successfully !")
         }
-        else log.info("The job has not been killed !")
+        else {
+            log.info("The job [${cytomineJobId}] has not been killed !")
+        }
     }
 
     synchronized void notifyEnd() {

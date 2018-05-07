@@ -68,9 +68,12 @@ class ProcessingServerThread implements Runnable {
                     keyFilePath: Main.configFile.keyFilePath
             )
 
-            log.info("HOST : ${processingServer.getStr("host")}")
-            log.info("PORT : ${processingServer.getStr("port")}")
-            log.info("USER : ${processingServer.getStr("username")}")
+            log.info("Processing server : ${processingServer.getStr("name")}")
+            log.info("================================================")
+            log.info("host : ${processingServer.getStr("host")}")
+            log.info("port : ${processingServer.getStr("port")}")
+            log.info("user : ${processingServer.getStr("username")}")
+            log.info("================================================")
 
         } catch (ClassNotFoundException ex) {
             log.info(ex.toString())
@@ -81,13 +84,11 @@ class ProcessingServerThread implements Runnable {
     void run() {
         JsonSlurper jsonSlurper = new JsonSlurper()
 
-        log.info(mapMessage)
-
         QueueingConsumer consumer = new QueueingConsumer(channel)
         channel.basicConsume(mapMessage["name"] as String, true, consumer)
 
         while (true) {
-            log.info("ProcessingServerThread waiting on queue : " + mapMessage["name"])
+            log.info("ProcessingServerThread waiting on queue : ${mapMessage["name"]}")
 
             QueueingConsumer.Delivery delivery = consumer.nextDelivery()
             String message = new String(delivery.getBody())
@@ -95,7 +96,7 @@ class ProcessingServerThread implements Runnable {
             def mapMessage = jsonSlurper.parseText(message)
 
             switch (mapMessage["requestType"]) {
-                case "execute":
+                case "execute": // TODO : check
                     log.info("Try pulling the image")
 
                     def pullingCommand = mapMessage["pullingCommand"] as String
@@ -139,14 +140,11 @@ class ProcessingServerThread implements Runnable {
 
                     break
                 case "kill":
-                    log.info("kill")
+                    def jobId = mapMessage["jobId"] as Long
 
-                    int jobId = mapMessage["jobId"]
-
-                    log.info(jobId)
+                    log.info("Try killing the job : ${jobId}")
 
                     synchronized (runningJobs) {
-                        runningJobs.each { id, thread -> println id}
                         if (runningJobs.containsKey(jobId)) {
                             (runningJobs.get(jobId) as JobExecutionThread).kill()
                             runningJobs.remove(jobId)

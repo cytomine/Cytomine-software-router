@@ -64,37 +64,46 @@ class CommunicationThread implements Runnable {
 
                     ProcessingServer processingServer = Main.cytomine.getProcessingServer(mapMessage["processingServerId"] as Long)
 
+                    // Launch the processingServerThread associated to the upon processingServer
                     Runnable processingServerThread = new ProcessingServerThread(channel, mapMessage, processingServer)
                     ExecutorService executorService = Executors.newSingleThreadExecutor()
                     executorService.execute(processingServerThread)
                     break
                 case "addSoftwareUserRepository":
                     log.info("Add a new software user repository")
+                    log.info("============================================")
+                    log.info("username          : ${mapMessage["username"]}")
+                    log.info("dockerUsername    : ${mapMessage["dockerUsername"]}")
+                    log.info("prefix            : ${mapMessage["prefix"]}")
+                    log.info("============================================")
 
-                    try {
-                        def softwareManager = new SoftwareManager(mapMessage["username"], mapMessage["dockerUsername"], mapMessage["prefix"], mapMessage["id"])
+                    def softwareManager = new SoftwareManager(mapMessage["username"], mapMessage["dockerUsername"], mapMessage["prefix"], mapMessage["id"])
 
-                        def repositoryManagerExist = false
-                        for (SoftwareManager elem : repositoryManagerThread.repositoryManagers) {
-                            if (softwareManager.gitHubManager.getClass() == elem.gitHubManager.getClass() &&
-                                    softwareManager.gitHubManager.username == elem.gitHubManager.username &&
-                                    softwareManager.dockerHubManager.username == elem.dockerHubManager.username) {
-                                repositoryManagerExist = true
-                                if (!elem.prefixes.contains(mapMessage["prefix"])) {
-                                    elem.prefixes.add(mapMessage["prefix"])
-                                }
-                                break
+                    def repositoryManagerExist = false
+                    for (SoftwareManager elem : repositoryManagerThread.repositoryManagers) {
+
+                        // Check if the software manager already exists
+                        if (softwareManager.gitHubManager.getClass().getName() == elem.gitHubManager.getClass().getName() &&
+                                softwareManager.gitHubManager.username == elem.gitHubManager.username &&
+                                softwareManager.dockerHubManager.username == elem.dockerHubManager.username) {
+
+                            repositoryManagerExist = true
+
+                            // If the repository manager already exists and doesn't have the prefix yet, add it
+                            if (!elem.prefixes.contains(mapMessage["prefix"])) {
+                                elem.prefixes.add(mapMessage["prefix"])
                             }
+                            break
                         }
-
-                        if (!repositoryManagerExist) {
-                            synchronized (repositoryManagerThread.repositoryManagers) {
-                                repositoryManagerThread.repositoryManagers.add(softwareManager)
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.info(e.getMessage())
                     }
+
+                    // If the software manager doesn't exist, add it
+                    if (!repositoryManagerExist) {
+                        synchronized (repositoryManagerThread.repositoryManagers) {
+                            repositoryManagerThread.repositoryManagers.add(softwareManager)
+                        }
+                    }
+
                     break
                 case "refreshRepositories":
                     log.info("Refresh all the repositories")

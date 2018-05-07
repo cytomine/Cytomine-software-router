@@ -17,6 +17,7 @@ package be.cytomine.software.consumer
  */
 
 import be.cytomine.client.Cytomine
+import be.cytomine.client.CytomineException
 import be.cytomine.client.collections.ProcessingServerCollection
 import be.cytomine.client.collections.SoftwareCollection
 import be.cytomine.client.collections.SoftwareUserRepositoryCollection
@@ -60,11 +61,8 @@ class Main {
         def dataDirectory = new File((String) configFile.dataDirectory)
         if (!dataDirectory.exists()) dataDirectory.mkdirs()
 
-        cytomine = new Cytomine(
-                configFile.cytomineCoreURL as String,
-                configFile.publicKey as String,
-                configFile.privateKey as String
-        )
+        // Cytomine instance
+        cytomine = new Cytomine(configFile.cytomineCoreURL as String, configFile.publicKey as String, configFile.privateKey as String)
 
         log.info("Launch repository thread")
         def repositoryManagementThread = launchRepositoryManagerThread()
@@ -105,40 +103,55 @@ class Main {
 
                 def repositoryManagerExist = false
                 for (SoftwareManager elem : repositoryManagers) {
-                    if (softwareManager.getClass() == elem.getClass() &&
-                            softwareManager.gitHubManager.username == elem.gitHubManager.username &&
-                            softwareManager.dockerHubManager.username == softwareManager.dockerHubManager.username &&
-                            !softwareManager.prefixes.contains(currentSoftwareUserRepository.getStr("prefix"))) {
 
+                    // Check if the software manager already exists
+                    if (softwareManager.gitHubManager.getClass().getName() == elem.gitHubManager.getClass().getName() &&
+                            softwareManager.gitHubManager.username == elem.gitHubManager.username &&
+                            softwareManager.dockerHubManager.username == elem.dockerHubManager.username &&
+                            !elem.prefixes.contains(currentSoftwareUserRepository.getStr("prefix"))) {
+
+                        // Add the new prefix to the prefix list
+                        elem.prefixes.add(currentSoftwareUserRepository.getStr("prefix"))
+                        repositoryManagerExist = true
+
+                        // Populate the software table with existing Cytomine software
                         SoftwareCollection softwareCollection = cytomine.getSoftwaresBySoftwareUserRepository(currentSoftwareUserRepository.getId())
                         for (int j = 0; j < softwareCollection.size(); j++) {
                             Software currentSoftware = softwareCollection.get(j)
                             def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftwareUserRepository.getStr("name").trim().toLowerCase()
+
+                            // Add an entry for a specific software
                             elem.softwareTable.put(key, currentSoftware)
-                            elem.prefixes.add(currentSoftwareUserRepository.getStr("prefix"))
                         }
 
-                        repositoryManagerExist = true
                         break
                     }
                 }
 
+                // If the software manager doesn't exist, add it
                 if (!repositoryManagerExist) {
+                    // Populate the software table with existing Cytomine software
                     SoftwareCollection softwareCollection = cytomine.getSoftwaresBySoftwareUserRepository(currentSoftwareUserRepository.getId())
                     for (int j = 0; j < softwareCollection.size(); j++) {
                         Software currentSoftware = softwareCollection.get(j)
                         def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftware.getStr("name").trim().toLowerCase()
+
+                        // Add an entry for a specific software
                         softwareManager.softwareTable.put(key, currentSoftware)
                     }
 
+                    // Add the software manager
                     repositoryManagers.add(softwareManager)
                 }
 
-            } catch (Exception e) {
-                log.info(e.getMessage())
+            } catch (CytomineException ex) {
+                log.info("Cytomine exception : ${ex.getMessage()}")
+            } catch (Exception ex) {
+                log.info("An unknown exception occurred : ${ex.getMessage()}")
             }
         }
 
+        // Launch the repository manager thread
         def repositoryManagerThread = new RepositoryManagerThread(repositoryManagers: repositoryManagers as ArrayList)
         def executorService = Executors.newSingleThreadExecutor()
         executorService.execute(repositoryManagerThread)

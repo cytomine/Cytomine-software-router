@@ -23,7 +23,7 @@ abstract class AbstractRepositoryManager {
 
     String username
 
-    static def newInstance(String provider, String username, String prefix = "") {
+    static def newInstance(String provider, String username, String prefix = "") throws ClassNotFoundException {
         def providers = new ConfigSlurper()
                 .parse(new File("src/main/resources/providers.groovy")
                 .toURI()

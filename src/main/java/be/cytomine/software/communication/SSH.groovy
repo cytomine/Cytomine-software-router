@@ -60,7 +60,7 @@ class SSH implements Communication {
     }
 
     @Override
-    def executeCommand(String command) { // Unknown host exception
+    def executeCommand(String command) throws JSchException, UnknownHostException {
         Session session = createSession()
 
         Channel channel = session.openChannel("exec")
@@ -96,13 +96,13 @@ class SSH implements Communication {
     }
 
     @Override
-    def copyRemoteToLocal(def from, def to, def filename) throws JSchException, IOException {
+    def copyRemoteToLocal(def from, def to, def filename) throws JSchException, IOException, UnknownHostException {
         Session session = createSession()
 
         from += File.separator + filename
         def prefix = null
 
-        if (new File(to).isDirectory()) {
+        if (new File(to as String).isDirectory()) {
             prefix = to + File.separator
         }
 
@@ -130,7 +130,7 @@ class SSH implements Communication {
 
             def filesize = 0L
             while (true) {
-                if (input.read(buf, 0, 1) < 0) return false
+                if (input.read(buf, 0, 1) < 0) throw new JSchException("Error during the file transfer !")
                 if (buf[0] == (Byte) (char) ' ') break
                 filesize = filesize * 10L + (long) (buf[0] - (char) '0')
             }
@@ -144,7 +144,7 @@ class SSH implements Communication {
                 }
             }
 
-            println("file-size=" + filesize + ", file=" + file)
+            log.info("file-size = ${filesize}, file = ${file}")
 
             // send '\0'
             buf[0] = 0
@@ -158,14 +158,14 @@ class SSH implements Communication {
                 if (buf.length < filesize) foo = buf.length
                 else foo = (int) filesize
                 foo = input.read(buf, 0, foo)
-                if (foo < 0) return false
+                if (foo < 0) throw new JSchException("Error during the file transfer !")
 
                 fos.write(buf, 0, foo)
                 filesize -= foo
                 if (filesize == 0L) break
             }
 
-            if (checkAck(input) != 0) return false
+            if (checkAck(input) != 0) throw new JSchException("Error during the file transfer !")
 
             // send '\0'
             buf[0] = 0
@@ -181,19 +181,17 @@ class SSH implements Communication {
 
         channel.disconnect()
         session.disconnect()
-
-        return true
     }
 
     @Override
-    def copyLocalToRemote(def from, def to, def filename) throws JSchException, IOException {
+    def copyLocalToRemote(def from, def to, def filename) throws JSchException, IOException, UnknownHostException {
         Session session = createSession()
 
         def ptimestamp = true
         from = from + File.separator + filename
 
         // exec 'scp -t rfile' remotely
-        String command = "scp " + (ptimestamp ? "-p" : "") + " -t " + to
+        String command = "scp " + (ptimestamp ? "-p" : "") + " -t " + to as String
         Channel channel = session.openChannel("exec")
         ((ChannelExec) channel).setCommand(command)
 
@@ -203,7 +201,7 @@ class SSH implements Communication {
 
         channel.connect()
 
-        if (checkAck(input) != 0) System.exit(0)
+        if (checkAck(input) != 0) throw new JSchException("Error during the file transfer !")
 
         File _lfile = new File(from as String)
 
@@ -214,7 +212,7 @@ class SSH implements Communication {
             command += (" " + (_lfile.lastModified() / 1000) + " 0\n")
             output.write(command.getBytes())
             output.flush()
-            if (checkAck(input) != 0) System.exit(0)
+            if (checkAck(input) != 0) throw new JSchException("Error during the file transfer !")
         }
 
         // send "C0644 filesize filename", where filename should not include '/'
@@ -230,7 +228,7 @@ class SSH implements Communication {
         output.write(command.getBytes())
         output.flush()
 
-        if (checkAck(input) != 0) System.exit(0)
+        if (checkAck(input) != 0) throw new JSchException("Error during the file transfer !")
 
         // send a content of lfile
         FileInputStream fis = new FileInputStream(from as String)
@@ -238,7 +236,7 @@ class SSH implements Communication {
         while (true) {
             int len = fis.read(buf, 0, buf.length)
             if (len <= 0) break
-            output.write(buf, 0, len) //out.flush();
+            output.write(buf, 0, len) //out.flush()
         }
 
         // send '\0'
@@ -246,7 +244,7 @@ class SSH implements Communication {
         output.write(buf, 0, 1)
         output.flush()
 
-        if (checkAck(input) != 0) System.exit(0)
+        if (checkAck(input) != 0) throw new JSchException("Error during the file transfer !")
 
         output.close()
 
@@ -271,8 +269,7 @@ class SSH implements Communication {
 
         if (b == 1 || b == 2) {
             def sb = new StringBuffer()
-            def c
-            c = inputStream.read()
+            def c = inputStream.read()
             sb.append((char) c)
             while (c != '\n') {
                 c = inputStream.read()
@@ -289,10 +286,15 @@ class SSH implements Communication {
     }
 
     static void main(String[] args) {
-        def list = ["a", "b", "c"]
+        def configFile = new ConfigSlurper().parse(new File("config.groovy").toURI().toURL())
+
+        def result = configFile.communicationRetryOnError
+
+        println result.getClass().getName()
 
 
-        println list
+        if (result.getClass().getName() == "groovy.util.ConfigObject" && result.isEmpty()) println "ok"
+
     }
 
 }

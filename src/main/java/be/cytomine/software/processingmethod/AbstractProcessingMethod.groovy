@@ -17,8 +17,25 @@ package be.cytomine.software.processingmethod
  */
 
 import be.cytomine.software.communication.Communication
+import be.cytomine.software.consumer.Main
+import groovy.util.logging.Log4j
 
+@Log4j
 abstract class AbstractProcessingMethod {
+
+    private static final def DEFAULT_RETRY = 3
+    protected static final def RETRY_ON_ERROR
+
+    static {
+        def result = Main.configFile.communicationRetryOnError
+        if (result.getClass().getName() == "groovy.util.ConfigObject" && result.isEmpty()) {
+            RETRY_ON_ERROR = DEFAULT_RETRY
+        } else {
+            RETRY_ON_ERROR = result
+        }
+
+        log.info("Retries : ${RETRY_ON_ERROR}")
+    }
 
     Communication communication
 

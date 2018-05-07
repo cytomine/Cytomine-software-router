@@ -16,17 +16,19 @@ package be.cytomine.software.processingmethod
  * limitations under the License.
  */
 
+import be.cytomine.software.consumer.Main
+import com.jcraft.jsch.JSchException
 import groovy.util.logging.Log4j
 
 @Log4j
-class SlurmProcessingMethod extends AbstractProcessingMethod {
+class SlurmProcessingMethod extends AbstractProcessingMethod { // TODO : check all
 
-    protected def defaultTime = '10:00'
+    protected final def DEFAULT_TIME = '10:00'
 
     @Override
     def executeJob(def command, def serverParameters) {
         // Build the slurm arguments
-        def slurmCommand = 'sbatch --output=%A.out --time=' + defaultTime
+        def slurmCommand = 'sbatch --output=%A.out --time=' + DEFAULT_TIME
 
         if (serverParameters != null) {
             slurmCommand = 'sbatch --output=%A.out '
@@ -42,41 +44,108 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
         def temp = (command as String).replace("singularity run ", "").trim()
         def imageName = temp.substring(0, temp.indexOf(" "))
 
+        log.info("Image name : ${imageName}")
+
         // Move the image from the local machine to the server
-        def imageExistsOnServer = communication.executeCommand("(ls ${imageName} && echo \"true\") || echo \"false\"") as Boolean
-        if (!imageExistsOnServer) {
-            def importResult = communication.copyLocalToRemote("./", "./", imageName)
+        def existCommand = "test -f ./${imageName} && echo \"true\" || echo \"false\""
+
+        log.info(existCommand)
+
+        def success = false
+        def retryOnError = true
+        for (int i = 0; i < RETRY_ON_ERROR && retryOnError; i++) {
+            log.info("Attempt : ${(i + 1)}")
+            try {
+                def imageExistsOnServer = communication.executeCommand(existCommand) as Boolean
+                log.info(imageExistsOnServer)
+                if (!imageExistsOnServer) {
+                    communication.copyLocalToRemote("./", "./", imageName)
+                }
+                success = true
+            } catch (JSchException ex) {
+                log.info(ex.getMessage())
+                retryOnError = true
+            } catch (Exception ex) {
+                log.info(ex.getMessage())
+                retryOnError = false
+            }
         }
+
+        if (!success) return -1
 
         // Execute the command on the processing server
         def executionCommand = '''echo "#!/bin/bash
 ''' + command + '''"|''' + slurmCommand
-        def response = communication.executeCommand(executionCommand)
 
         log.info("Command : ${executionCommand}")
 
-        def jobId = (response =~ /(\d+)/)
-        return jobId.find() ? jobId.group() as Integer : -1
+        retryOnError = true
+        for (int i = 0; i < RETRY_ON_ERROR && retryOnError; i++) {
+            log.info("Attempt : ${(i + 1)}")
+            try {
+                def response = communication.executeCommand(executionCommand)
+                def jobId = (response =~ /(\d+)/)
+                return jobId.find() ? jobId.group() as Integer : -1
+            } catch (JSchException ex) {
+                log.info(ex.getMessage())
+                retryOnError = true
+            } catch (Exception ex) {
+                log.info(ex.getMessage())
+                retryOnError = false
+            }
+        }
+
+        return -1
     }
 
     @Override
     def isAlive(def jobId) {
         def aliveCommand = "squeue -j ${jobId}"
         def response = communication.executeCommand(aliveCommand)
-
         return (response =~ /(\d+)/).find()
     }
 
     @Override
     def retrieveLogs(def jobId, def outputFile) {
-        return communication.copyRemoteToLocal(".", "./algo/logs/${outputFile}.out", "${jobId}.out")
+        def retryOnError = true
+
+        for (int i = 0; i < RETRY_ON_ERROR && retryOnError; i++) {
+            log.info("Attempt : ${(i + 1)}")
+            try {
+                communication.copyRemoteToLocal(".", "${Main.configFile.logsDirectory}/${outputFile}.out", "${jobId}.out")
+                return true
+            } catch (JSchException ex) {
+                log.info(ex.getMessage())
+                retryOnError = true
+            } catch (Exception ex) {
+                log.info(ex.getMessage())
+                retryOnError = false
+            }
+        }
+
+        return false
     }
 
     @Override
     def killJob(def jobId) {
         def killCommand = "scancel ${jobId}"
-        def result = communication.executeCommand(killCommand)
-        return result == ""
+
+        def retryOnError = true
+        for (int i = 0; i < RETRY_ON_ERROR && retryOnError; i++) {
+            log.info("Attempt : ${(i + 1)}")
+            try {
+                def result = communication.executeCommand(killCommand)
+                return result == ""
+            } catch (JSchException ex) {
+                log.info(ex.getMessage())
+                retryOnError = true
+            } catch (Exception ex) {
+                log.info(ex.getMessage())
+                retryOnError = false
+            }
+        }
+
+        return false
     }
 
 }

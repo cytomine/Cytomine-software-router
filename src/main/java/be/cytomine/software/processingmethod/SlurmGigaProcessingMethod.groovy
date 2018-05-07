@@ -4,7 +4,7 @@ class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
 
     @Override
     def executeJob(def command, def serverParameters) {
-        def slurmCommand = 'sbatch --output=%A.out --time=' + defaultTime
+        def slurmCommand = 'sbatch --output=%A.out --time=' + DEFAULT_TIME
 
         if (serverParameters != null) {
             slurmCommand = 'sbatch --output=%A.out '

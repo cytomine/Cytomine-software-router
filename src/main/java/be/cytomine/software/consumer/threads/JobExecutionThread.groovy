@@ -40,7 +40,9 @@ class JobExecutionThread implements Runnable {
             return
         }
 
-        log.info("Job ${cytomineJobId} launched successfully !")
+        log.info("Job launched successfully !")
+        log.info("Cytomine job id   : ${cytomineJobId}")
+        log.info("Server job id     : ${serverJobId}")
 
         // Wait until the end of the job
         while (processingMethod.isAlive(serverJobId)) {

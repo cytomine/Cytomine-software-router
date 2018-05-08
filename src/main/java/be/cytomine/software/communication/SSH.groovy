@@ -285,16 +285,4 @@ class SSH implements Communication {
         return b
     }
 
-    static void main(String[] args) {
-        def configFile = new ConfigSlurper().parse(new File("config.groovy").toURI().toURL())
-
-        def result = configFile.communicationRetryOnError
-
-        println result.getClass().getName()
-
-
-        if (result.getClass().getName() == "groovy.util.ConfigObject" && result.isEmpty()) println "ok"
-
-    }
-
 }

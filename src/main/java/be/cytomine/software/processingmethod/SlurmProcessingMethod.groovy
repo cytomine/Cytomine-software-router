@@ -21,7 +21,7 @@ import com.jcraft.jsch.JSchException
 import groovy.util.logging.Log4j
 
 @Log4j
-class SlurmProcessingMethod extends AbstractProcessingMethod { // TODO : check all
+class SlurmProcessingMethod extends AbstractProcessingMethod {
 
     protected final def DEFAULT_TIME = '10:00'
 
@@ -47,17 +47,14 @@ class SlurmProcessingMethod extends AbstractProcessingMethod { // TODO : check a
         log.info("Image name : ${imageName}")
 
         // Move the image from the local machine to the server
-        def existCommand = "test -f ./${imageName} && echo \"true\" || echo \"false\""
-
-        log.info(existCommand)
+        def existCommand = "test -f \$HOME/${imageName} && echo \"true\" || echo \"false\""
 
         def success = false
         def retryOnError = true
-        for (int i = 0; i < RETRY_ON_ERROR && retryOnError; i++) {
+        for (int i = 0; i < RETRY_ON_ERROR && retryOnError && !success; i++) {
             log.info("Attempt : ${(i + 1)}")
             try {
-                def imageExistsOnServer = communication.executeCommand(existCommand) as Boolean
-                log.info(imageExistsOnServer)
+                def imageExistsOnServer = Boolean.parseBoolean((communication.executeCommand(existCommand) as String).trim())
                 if (!imageExistsOnServer) {
                     communication.copyLocalToRemote("./", "./", imageName)
                 }
@@ -83,8 +80,10 @@ class SlurmProcessingMethod extends AbstractProcessingMethod { // TODO : check a
         for (int i = 0; i < RETRY_ON_ERROR && retryOnError; i++) {
             log.info("Attempt : ${(i + 1)}")
             try {
-                def response = communication.executeCommand(executionCommand)
-                def jobId = (response =~ /(\d+)/)
+                def response = communication.executeCommand(executionCommand) as String
+                def responseWithoutColorCode = response.replaceAll('\u001B\\[[;\\d]*m', '')
+
+                def jobId = (responseWithoutColorCode =~ /(\d+)/)
                 return jobId.find() ? jobId.group() as Integer : -1
             } catch (JSchException ex) {
                 log.info(ex.getMessage())
@@ -101,8 +100,10 @@ class SlurmProcessingMethod extends AbstractProcessingMethod { // TODO : check a
     @Override
     def isAlive(def jobId) {
         def aliveCommand = "squeue -j ${jobId}"
-        def response = communication.executeCommand(aliveCommand)
-        return (response =~ /(\d+)/).find()
+        def response = communication.executeCommand(aliveCommand) as String
+        def responseWithoutColorCode = response.replaceAll('\u001B\\[[;\\d]*m', '')
+
+        return (responseWithoutColorCode =~ /(\d+)/).find()
     }
 
     @Override

@@ -10,17 +10,17 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="Maven: log4j:log4j:1.2.17" level="project" />
-    <orderEntry type="library" exported="" name="Maven: org.kohsuke:github-api:1.92" level="project" />
-    <orderEntry type="library" exported="" name="Maven: commons-lang:commons-lang:2.6" level="project" />
-    <orderEntry type="library" exported="" name="Maven: commons-codec:commons-codec:1.7" level="project" />
-    <orderEntry type="library" exported="" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.2" level="project" />
-    <orderEntry type="library" exported="" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.0" level="project" />
-    <orderEntry type="library" exported="" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.2" level="project" />
-    <orderEntry type="library" exported="" name="Maven: commons-io:commons-io:1.4" level="project" />
-    <orderEntry type="library" exported="" name="Maven: com.jcraft:jsch:0.1.54" level="project" />
-    <orderEntry type="library" exported="" name="cytomine-java-client" level="project" />
-    <orderEntry type="library" exported="" name="rabbitmq-client" level="project" />
     <orderEntry type="library" name="groovy-2.3.7" level="application" />
+    <orderEntry type="library" name="cytomine-java-client" level="project" />
+    <orderEntry type="library" name="Maven: log4j:log4j:1.2.17" level="project" />
+    <orderEntry type="library" name="Maven: org.kohsuke:github-api:1.92" level="project" />
+    <orderEntry type="library" name="Maven: commons-lang:commons-lang:2.6" level="project" />
+    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.7" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.2" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.0" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.2" level="project" />
+    <orderEntry type="library" name="Maven: commons-io:commons-io:1.4" level="project" />
+    <orderEntry type="library" name="Maven: com.jcraft:jsch:0.1.54" level="project" />
+    <orderEntry type="library" name="Maven: com.rabbitmq:amqp-client:3.4.4" level="project" />
   </component>
 </module>

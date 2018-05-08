@@ -132,6 +132,10 @@ class Interpreter {
 
         String maximum = json?."maximum" as String
 
+        String equals = json?."equals" as String
+
+        String inside = json?."in" as String
+
         String uri = json?."uri"
 
         String uriPrintAttribut = json?."uri-print-attribut"
@@ -146,6 +150,8 @@ class Interpreter {
                 "serverParameter": serverParameter,
                 "minimum": minimum,
                 "maximum": maximum,
+                "equals": equals,
+                "in": inside,
                 "uri": uri,
                 "uriPrintAttribut": uriPrintAttribut,
                 "uriSortAttribut": uriSortAttribut]

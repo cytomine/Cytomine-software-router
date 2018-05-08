@@ -103,6 +103,13 @@ class ProcessingServerThread implements Runnable {
                     def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
                     def imageName = temp.substring(0, temp.indexOf(" "))
 
+                    synchronized (Main.pendingPullingTable) {
+                        if (Main.pendingPullingTable.contains(imageName)) {
+                            log.info("The image [${imageName}] is currently being pulled !")
+                            return
+                        }
+                    }
+
                     def imageExists = new File("./${imageName}").exists()
 
                     def pullingResult = 0
@@ -118,8 +125,7 @@ class ProcessingServerThread implements Runnable {
                         String command = ""
                         mapMessage["command"].each { command += it.toString() + " " }
 
-                        log.info("Execute command : ${command}")
-
+                        log.info("Job launched via the processing server : ${processingServer.getStr("name")}")
                         Runnable jobExecutionThread = new JobExecutionThread(
                                 processingMethod: processingMethod,
                                 command: command,

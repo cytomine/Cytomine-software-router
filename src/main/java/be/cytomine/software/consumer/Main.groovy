@@ -47,6 +47,8 @@ class Main {
     static Connection connection
     static Channel channel
 
+    static def pendingPullingTable = []
+
     static void main(String[] args) {
         PropertyConfigurator.configure("log4j.properties");
 

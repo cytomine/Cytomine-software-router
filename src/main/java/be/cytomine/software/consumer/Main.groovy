@@ -63,6 +63,10 @@ class Main {
         def dataDirectory = new File((String) configFile.dataDirectory)
         if (!dataDirectory.exists()) dataDirectory.mkdirs()
 
+        // Create the directory for images
+        def imagesDirectory = new File((String) configFile.imagesDirectory)
+        if (!imagesDirectory.exists()) imagesDirectory.mkdirs()
+
         // Cytomine instance
         cytomine = new Cytomine(configFile.cytomineCoreURL as String, configFile.publicKey as String, configFile.privateKey as String)
 

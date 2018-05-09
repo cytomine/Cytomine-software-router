@@ -32,7 +32,7 @@ class ImagePullerThread implements Runnable {
 
         log.info("Pulling thread is running for image ${imageName}")
 
-        if (new File("./${imageName}").exists()) {
+        if (new File("${Main.configFile.imagesDirectory}/${imageName}").exists()) {
             log.info("The image [${imageName}] already exists !")
             return
         }
@@ -41,13 +41,16 @@ class ImagePullerThread implements Runnable {
             Main.pendingPullingTable.add(imageName)
         }
 
-        def process = pullingCommand.execute()
+        def process = (pullingCommand as String).execute()
         process.waitFor()
         if (process.exitValue() == 0) {
             log.info("The image [${imageName}] has successfully been pulled !")
         } else {
             log.info("The image [${imageName}] has not been pulled !")
         }
+
+        def movingProcess = ("mv ${imageName} ${Main.configFile.imagesDirectory}").execute()
+        movingProcess.waitFor()
 
         synchronized (Main.pendingPullingTable) {
             Main.pendingPullingTable.remove(imageName)

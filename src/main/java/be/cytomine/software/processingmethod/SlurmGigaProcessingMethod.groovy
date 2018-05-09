@@ -1,5 +1,7 @@
 package be.cytomine.software.processingmethod
 
+import be.cytomine.software.consumer.Main
+
 /*
  * Copyright (c) 2009-2018. Authors: see NOTICE file.
  *
@@ -53,7 +55,7 @@ class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
             try {
                 def imageExistsOnServer = Boolean.parseBoolean((communication.executeCommand(existCommand) as String).trim())
                 if (!imageExistsOnServer) {
-                    communication.copyLocalToRemote("./", "./", imageName)
+                    communication.copyLocalToRemote("./${Main.configFile.imagesDirectory}/", "./", imageName)
                 }
                 success = true
             } catch (JSchException ex) {

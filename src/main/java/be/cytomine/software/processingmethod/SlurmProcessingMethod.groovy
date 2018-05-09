@@ -56,7 +56,7 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
             try {
                 def imageExistsOnServer = Boolean.parseBoolean((communication.executeCommand(existCommand) as String).trim())
                 if (!imageExistsOnServer) {
-                    communication.copyLocalToRemote("./", "./", imageName)
+                    communication.copyLocalToRemote("./${Main.configFile.imagesDirectory}/", "./", imageName)
                 }
                 success = true
             } catch (JSchException ex) {

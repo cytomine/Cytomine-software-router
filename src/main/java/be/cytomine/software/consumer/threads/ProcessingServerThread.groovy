@@ -110,13 +110,18 @@ class ProcessingServerThread implements Runnable {
                         }
                     }
 
-                    def imageExists = new File("./${imageName}").exists()
+                    def imageExists = new File("${Main.configFile.imagesDirectory}/${imageName}").exists()
 
                     def pullingResult = 0
                     if (!imageExists) {
                         def process = pullingCommand.execute()
                         process.waitFor()
                         pullingResult = process.exitValue()
+
+                        if (pullingResult == 0) {
+                            def movingProcess = ("mv ${imageName} ${Main.configFile.imagesDirectory}").execute()
+                            movingProcess.waitFor()
+                        }
                     }
 
                     if (imageExists || pullingResult == 0) {

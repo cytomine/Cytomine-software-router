@@ -1,7 +1,5 @@
 package be.cytomine.software.communication
 
-import com.jcraft.jsch.JSchException
-
 /*
  * Copyright (c) 2009-2018. Authors: see NOTICE file.
  *

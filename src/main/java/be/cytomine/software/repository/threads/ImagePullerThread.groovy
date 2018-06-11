@@ -1,7 +1,5 @@
 package be.cytomine.software.repository.threads
 
-import be.cytomine.software.consumer.Main
-
 /*
  * Copyright (c) 2009-2018. Authors: see NOTICE file.
  *
@@ -18,6 +16,7 @@ import be.cytomine.software.consumer.Main
  * limitations under the License.
  */
 
+import be.cytomine.software.consumer.Main
 import groovy.util.logging.Log4j
 
 @Log4j

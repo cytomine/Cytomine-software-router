@@ -1,6 +1,5 @@
 package be.cytomine.software.communication
 
-
 /*
  * Copyright (c) 2009-2018. Authors: see NOTICE file.
  *

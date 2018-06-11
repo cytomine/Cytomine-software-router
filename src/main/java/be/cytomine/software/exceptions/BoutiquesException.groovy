@@ -1,8 +1,7 @@
-package src.be.cytomine.software.util
+package be.cytomine.software.exceptions
 
-import groovy.json.JsonSlurper
 /*
- * Copyright (c) 2009-2015. Authors: see NOTICE file.
+ * Copyright (c) 2009-2018. Authors: see NOTICE file.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +15,16 @@ import groovy.json.JsonSlurper
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class Util {
 
-    static String parseString(String message) {
-        JsonSlurper slurper = new JsonSlurper()
-        return slurper.parseText(message)
+class BoutiquesException extends Exception {
+
+    BoutiquesException(String message) {
+        super(message)
+    }
+
+    @Override
+    String toString() {
+        return message
     }
 
 }

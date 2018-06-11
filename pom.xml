@@ -1,33 +1,34 @@
-<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd'>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>be.cytomine.software</groupId>
-  <artifactId>Cytomine-software-router</artifactId>
-  <version>20150401</version>
-  <packaging>pom</packaging> 
-  <name>Cytomine-software-router</name>
-  <build>
-  </build>
-  <properties>
-    <sonar.sources>src</sonar.sources>
-    <sonar.language>grvy</sonar.language>
-    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-   <sonar.surefire.reportsPath>build/test/results</sonar.surefire.reportsPath>
-       
-   <!--<sonar.jdbc.url>jdbc:postgresql://localhost/sonar</sonar.jdbc.url>
-   <sonar.jdbc.driver>org.postgresql.Driver</sonar.jdbc.driver>
-   <sonar.jdbc.username>postgres</sonar.jdbc.username>
-   <sonar.jdbc.password></sonar.jdbc.password>-->
+    <groupId>be.cytomine.software</groupId>
+    <artifactId>Cytomine-software-router</artifactId>
+    <version>1.0-SNAPSHOT</version>
 
-    <sonar.groovy.junit.reportsPath>target/test-reports</sonar.groovy.junit.reportsPath>
-        <sonar.groovy.cobertura.reportPath>target/test-reports/cobertura/coverage.xml</sonar.groovy.cobertura.reportPath>
-        <sonar.jdbc.url>jdbc:postgresql://localhost/sonar</sonar.jdbc.url>
-            <sonar.jdbc.driver>org.postgresql.Driver</sonar.jdbc.driver>
-                <sonar.jdbc.username>postgres</sonar.jdbc.username>
-                    <sonar.jdbc.password></sonar.jdbc.password>
-                        <!-- test -->
-    <sonar.host.url>http://sonar.cytomine.be</sonar.host.url>
+    <dependencies>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kohsuke</groupId>
+            <artifactId>github-api</artifactId>
+            <version>1.92</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.54</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>3.4.4</version>
+        </dependency>
+    </dependencies>
 
-  </properties>
-</project> 
-
+</project>

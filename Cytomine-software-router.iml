@@ -10,8 +10,17 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="groovy-2.3.7" level="application" />
-    <orderEntry type="library" name="cytomine-java-client" level="project" />
+    <orderEntry type="library" name="org.codehaus.groovy:groovy:1.8.3" level="project" />
+    <orderEntry type="library" name="Maven: be.cytomine.client:cytomine-java-client" level="project" />
+    <orderEntry type="module-library">
+      <library name="Maven: be.cytomine.client:cytomine-java-client:1.0">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/lib/Cytomine-java-client.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" name="Maven: log4j:log4j:1.2.17" level="project" />
     <orderEntry type="library" name="Maven: org.kohsuke:github-api:1.92" level="project" />
     <orderEntry type="library" name="Maven: commons-lang:commons-lang:2.6" level="project" />

@@ -10,8 +10,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="org.codehaus.groovy:groovy:1.8.3" level="project" />
-    <orderEntry type="library" name="Maven: be.cytomine.client:cytomine-java-client" level="project" />
     <orderEntry type="module-library">
       <library name="Maven: be.cytomine.client:cytomine-java-client:1.0">
         <CLASSES>
@@ -31,5 +29,6 @@
     <orderEntry type="library" name="Maven: commons-io:commons-io:1.4" level="project" />
     <orderEntry type="library" name="Maven: com.jcraft:jsch:0.1.54" level="project" />
     <orderEntry type="library" name="Maven: com.rabbitmq:amqp-client:3.4.4" level="project" />
+    <orderEntry type="library" name="groovy-2.4.15" level="application" />
   </component>
 </module>

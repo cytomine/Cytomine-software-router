@@ -51,11 +51,11 @@ abstract class AbstractProcessingMethod {
         return instance
     }
 
-    def abstract executeJob(def command, def serverParameters)
+    def abstract executeJob(def command, def serverParameters, def workingDirectory)
 
     def abstract isAlive(def jobId)
 
-    def abstract retrieveLogs(def jobId, def outputFile)
+    def abstract retrieveLogs(def jobId, def outputFile, def workingDirectory)
 
     def abstract killJob(def jobId)
 

@@ -24,12 +24,13 @@ import groovy.util.logging.Log4j
 class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
 
     @Override
-    def executeJob(def command, def serverParameters) {
+    def executeJob(def command, def serverParameters, def workingDirectory) {
         // Build the slurm arguments
-        def slurmCommand = 'sbatch -p Public --output=%A.out --time=' + DEFAULT_TIME
+        def output = workingDirectory?:'' + (workingDirectory ? File.separator : '') + '%A.out'
+        def slurmCommand = 'sbatch -p Public --output=' + output + ' --time=' + DEFAULT_TIME
 
         if (serverParameters != null) {
-            slurmCommand = 'sbatch -p Public --output=%A.out '
+            slurmCommand = 'sbatch -p Public --output=' + output + ' '
 
             def timeSet = false
             serverParameters.each { element ->
@@ -40,12 +41,12 @@ class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
 
         // Get the image name
         def temp = (command as String).replace("singularity run ", "").trim()
-        def imageName = temp.substring(0, temp.indexOf(" "))
+        def imageName = new File(temp.substring(0, temp.indexOf(" ")))
 
         log.info("Image name : ${imageName}")
 
         // Move the image from the local machine to the server
-        def existCommand = "test -f \$HOME/${imageName} && echo \"true\" || echo \"false\""
+        def existCommand = "test -f ${imageName} && echo \"true\" || echo \"false\""
 
         def success = false
         def retryOnError = true
@@ -55,8 +56,8 @@ class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
             try {
                 def imageExistsOnServer = Boolean.parseBoolean((communication.executeCommand(existCommand) as String).trim())
                 if (!imageExistsOnServer) {
-                    log.info("Image not found on processing server, copying it.")
-                    communication.copyLocalToRemote("${Main.configFile.cytomine.software.path.softwareImages}/", "./", imageName)
+                    communication.copyLocalToRemote("${Main.configFile.cytomine.software.path.softwareImages}/",
+                            "${imageName.getParent()}/", imageName.getName())
                 }
                 success = true
             } catch (JSchException ex) {
@@ -73,7 +74,7 @@ class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
         if (!success) return [jobId:-1, message:errorMessage]
 
         // Execute the command on the processing server
-        def executionCommand = '''echo "#!/bin/bash
+        def executionCommand = '''cd ''' + (workingDirectory?:".") + ''' && echo "#!/bin/bash
 export PATH=$PATH:/home/mass/opt/gridbin/bin
 ''' + command + '''"|''' + slurmCommand
 

@@ -32,6 +32,8 @@ class JobExecutionThread implements Runnable {
     def serverJobId
     def runningJobs = [:]
     def serverParameters
+    def persistentDirectory
+    def workingDirectory
     
     def logPrefix() { 
         "[Job ${cytomineJobId}]" 
@@ -40,7 +42,7 @@ class JobExecutionThread implements Runnable {
     @Override
     void run() {
         // Executes a job on a server using a processing method(slurm,...) and a communication method (SSH,...)
-        def result = processingMethod.executeJob(command, serverParameters)
+        def result = processingMethod.executeJob(command, serverParameters, workingDirectory)
         serverJobId = result['jobId']
         if (serverJobId == -1) {
             log.error("${logPrefix()} Job failed! Reason: ${result['message']}")
@@ -60,7 +62,7 @@ class JobExecutionThread implements Runnable {
         }
 
         // Retrieve the slurm job log
-        if (processingMethod.retrieveLogs(serverJobId, cytomineJobId)) {
+        if (processingMethod.retrieveLogs(serverJobId, cytomineJobId, workingDirectory)) {
             log.info("${logPrefix()} Logs retrieved successfully !")
 
             def filePath = "${Main.configFile.cytomine.software.path.jobs}/${cytomineJobId}.out"

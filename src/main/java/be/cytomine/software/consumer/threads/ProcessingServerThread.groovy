@@ -129,7 +129,13 @@ class ProcessingServerThread implements Runnable {
                         log.info("${logPrefix} Found image!")
 
                         String command = ""
-                        mapMessage["command"].each { command += it.toString() + " " }
+                        mapMessage["command"].each {
+                            if (command == "singularity run ") {
+                                command += processingServer.getStr("persistentDirectory")
+                                command += (processingServer.getStr("persistentDirectory") ? File.separator : "")
+                            }
+                            command += it.toString() + " "
+                        }
 
                         log.info("${logPrefix} Job in queue!")
                         Runnable jobExecutionThread = new JobExecutionThread(
@@ -137,7 +143,9 @@ class ProcessingServerThread implements Runnable {
                                 command: command,
                                 cytomineJobId: jobId,
                                 runningJobs: runningJobs,
-                                serverParameters: mapMessage["serverParameters"]
+                                serverParameters: mapMessage["serverParameters"],
+                                persistentDirectory: processingServer.getStr("persistentDirectory"),
+                                workingDirectory: processingServer.getStr("workingDirectory")
                         )
                         synchronized (runningJobs) {
                             runningJobs.put(jobId, jobExecutionThread)

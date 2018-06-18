@@ -26,12 +26,13 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
     protected final def DEFAULT_TIME = '60:00'
 
     @Override
-    def executeJob(def command, def serverParameters) {
+    def executeJob(def command, def serverParameters, def workingDirectory) {
         // Build the slurm arguments
-        def slurmCommand = 'sbatch --output=%A.out --time=' + DEFAULT_TIME
+        def output = workingDirectory?:'' + (workingDirectory ? File.separator : '') + '%A.out'
+        def slurmCommand = 'sbatch --output=' + output + ' --time=' + DEFAULT_TIME
 
         if (serverParameters != null) {
-            slurmCommand = 'sbatch --output=%A.out '
+            slurmCommand = 'sbatch --output=' + output + ' '
 
             def timeSet = false
             serverParameters.each { element ->
@@ -42,12 +43,12 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
 
         // Get the image name
         def temp = (command as String).replace("singularity run ", "").trim()
-        def imageName = temp.substring(0, temp.indexOf(" "))
+        def imageName = new File(temp.substring(0, temp.indexOf(" ")))
 
         log.info("Image name : ${imageName}")
 
         // Move the image from the local machine to the server
-        def existCommand = "test -f \$HOME/${imageName} && echo \"true\" || echo \"false\""
+        def existCommand = "test -f ${imageName} && echo \"true\" || echo \"false\""
 
         def success = false
         def retryOnError = true
@@ -58,7 +59,8 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
                 def imageExistsOnServer = Boolean.parseBoolean((communication.executeCommand(existCommand) as String).trim())
                 if (!imageExistsOnServer) {
                     log.info("Image not found on processing server, copying it.")
-                    communication.copyLocalToRemote("${Main.configFile.cytomine.software.path.softwareImages}/", "./", imageName)
+                    communication.copyLocalToRemote("${Main.configFile.cytomine.software.path.softwareImages}/",
+                            "${imageName.getParent()}/", imageName.getName())
                 }
                 success = true
             } catch (JSchException ex) {
@@ -75,7 +77,7 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
         if (!success) return [jobId:-1, message:errorMessage]
 
         // Execute the command on the processing server
-        def executionCommand = '''echo "#!/bin/bash
+        def executionCommand = '''cd ''' + (workingDirectory?:".") + ''' && echo "#!/bin/bash
 ''' + command + '''"|''' + slurmCommand
 
         log.info("Command : ${executionCommand}")
@@ -113,13 +115,13 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
     }
 
     @Override
-    def retrieveLogs(def jobId, def outputFile) {
+    def retrieveLogs(def jobId, def outputFile, def workingDirectory) {
         def retryOnError = true
 
         for (int i = 0; i < RETRY_ON_ERROR && retryOnError; i++) {
             log.info("Attempt : ${(i + 1)}")
             try {
-                communication.copyRemoteToLocal(".", "${Main.configFile.cytomine.software.path.jobs}/${outputFile}.out", "${jobId}.out")
+                communication.copyRemoteToLocal(workingDirectory?:".", "${Main.configFile.cytomine.software.path.jobs}/${outputFile}.out", "${jobId}.out")
                 return true
             } catch (JSchException ex) {
                 log.info(ex.getMessage())

@@ -56,19 +56,19 @@ class Main {
         log.info("PATH : ${System.getenv("PATH")}")
 
         // Create the directory for logs
-        def logsDirectory = new File((String) configFile.logsDirectory)
+        def logsDirectory = new File((String) configFile.cytomine.software.path.jobs)
         if (!logsDirectory.exists()) logsDirectory.mkdirs()
 
         // Create the directory for software data
-        def dataDirectory = new File((String) configFile.dataDirectory)
+        def dataDirectory = new File((String) configFile.cytomine.software.path.softwareSources)
         if (!dataDirectory.exists()) dataDirectory.mkdirs()
 
         // Create the directory for images
-        def imagesDirectory = new File((String) configFile.imagesDirectory)
+        def imagesDirectory = new File((String) configFile.cytomine.software.path.softwareImages)
         if (!imagesDirectory.exists()) imagesDirectory.mkdirs()
 
         // Cytomine instance
-        cytomine = new Cytomine(configFile.cytomineCoreURL as String, configFile.publicKey as String, configFile.privateKey as String)
+        cytomine = new Cytomine(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
 
         log.info("Launch repository thread")
         def repositoryManagementThread = launchRepositoryManagerThread()
@@ -85,9 +85,9 @@ class Main {
 
     static void createRabbitMQConnection() {
         ConnectionFactory connectionFactory = new ConnectionFactory()
-        connectionFactory.setHost(configFile.rabbitAddress as String)
-        connectionFactory.setUsername(configFile.rabbitUsername as String)
-        connectionFactory.setPassword(configFile.rabbitPassword as String)
+        connectionFactory.setHost(configFile.rabbitmq.host as String)
+        connectionFactory.setUsername(configFile.rabbitmq.username as String)
+        connectionFactory.setPassword(configFile.rabbitmq.password as String)
         connection = connectionFactory.newConnection()
         channel = connection.createChannel()
     }
@@ -169,8 +169,8 @@ class Main {
         Runnable communicationThread = new CommunicationThread(
                 repositoryManagerThread: repositoryManagerThread,
                 channel: channel,
-                queueName: configFile.queueCommunication as String,
-                exchangeName: configFile.exchangeCommunication as String
+                queueName: configFile.cytomine.software.communication.queue as String,
+                exchangeName: configFile.cytomine.software.communication.exchange as String
         )
         ExecutorService executorService = Executors.newSingleThreadExecutor()
         executorService.execute(communicationThread)

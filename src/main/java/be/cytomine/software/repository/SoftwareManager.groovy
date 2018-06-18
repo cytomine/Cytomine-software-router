@@ -50,10 +50,8 @@ class SoftwareManager {
     def updateSoftware() {
         def repositories = dockerHubManager.getRepositories()
         repositories.each { repository ->
-
-            log.info("Repository : ${repository}")
-
             if (startsWithKnownPrefix(repository as String)) {
+                log.info("Repository : ${repository}")
                 Software currentSoftware = softwareTable.get((repository as String).trim().toLowerCase()) as Software
                 def tags = dockerHubManager.getTags(repository as String)
 

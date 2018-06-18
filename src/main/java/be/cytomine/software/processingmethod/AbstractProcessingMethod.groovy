@@ -27,7 +27,7 @@ abstract class AbstractProcessingMethod {
     protected static final def RETRY_ON_ERROR
 
     static {
-        def result = Main.configFile.communicationRetryOnError
+        def result = Main.configFile.cytomine.software.ssh.maxRetries
         if (result.getClass().getName() == "groovy.util.ConfigObject" && result.isEmpty()) {
             RETRY_ON_ERROR = DEFAULT_RETRY
         } else {

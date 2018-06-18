@@ -31,7 +31,7 @@ class RepositoryManagerThread implements Runnable {
 
     @Override
     void run() {
-        def result = Main.configFile.repositoryManagerRefreshRate
+        def result = Main.configFile.cytomine.software.repositoryManagerRefreshRate
         if (result.getClass().getName() == "groovy.util.ConfigObject" && result.isEmpty()) {
             refreshRate = DEFAULT_REFRESH_RATE
         } else  {
@@ -44,9 +44,7 @@ class RepositoryManagerThread implements Runnable {
             log.info("Amount of repository managers : ${repositoryManagers.size()}")
 
             if (repositoryManagers.size() > 0) {
-                log.info("Refresh repository manager ${index}")
-
-                log.info("Prefixes : ${(repositoryManagers.get(index) as SoftwareManager).prefixes}")
+                log.info("Refresh repository manager ${index + 1} with prefixes: ${(repositoryManagers.get(index) as SoftwareManager).prefixes}")
                 (repositoryManagers.get(index) as SoftwareManager).updateSoftware()
 
                 index = ++index % repositoryManagers.size()

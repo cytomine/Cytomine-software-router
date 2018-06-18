@@ -1,5 +1,7 @@
 package be.cytomine.software.consumer.threads
 
+import be.cytomine.client.Cytomine
+
 /*
  * Copyright (c) 2009-2018. Authors: see NOTICE file.
  *
@@ -30,32 +32,38 @@ class JobExecutionThread implements Runnable {
     def serverJobId
     def runningJobs = [:]
     def serverParameters
+    
+    def logPrefix() { 
+        "[Job ${cytomineJobId}]" 
+    }
 
     @Override
-    void run() { // TODO : check
+    void run() {
         // Executes a job on a server using a processing method(slurm,...) and a communication method (SSH,...)
-        serverJobId = processingMethod.executeJob(command, serverParameters)
+        def result = processingMethod.executeJob(command, serverParameters)
+        serverJobId = result['jobId']
         if (serverJobId == -1) {
-            log.info("Job ${cytomineJobId} failed !")
+            log.error("${logPrefix()} Job failed! Reason: ${result['message']}")
+            Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0, result['message'] as String)
             return
         }
 
-        log.info("Job launched successfully !")
-        log.info("Cytomine job id   : ${cytomineJobId}")
-        log.info("Server job id     : ${serverJobId}")
+        log.info("${logPrefix()} Job launched successfully !")
+        log.info("${logPrefix()} Cytomine job id   : ${cytomineJobId}")
+        log.info("${logPrefix()} Server job id     : ${serverJobId}")
 
         // Wait until the end of the job
         while (processingMethod.isAlive(serverJobId)) {
-            log.info("${serverJobId} is running !")
+            log.info("${logPrefix()} Job is running !")
 
             sleep((refreshRate as Long) * 1000)
         }
 
         // Retrieve the slurm job log
         if (processingMethod.retrieveLogs(serverJobId, cytomineJobId)) {
-            log.info("Logs retrieved successfully !")
+            log.info("${logPrefix()} Logs retrieved successfully !")
 
-            def filePath = "${Main.configFile.logsDirectory}/${cytomineJobId}.out" // TODO : check
+            def filePath = "${Main.configFile.cytomine.software.path.jobs}/${cytomineJobId}.out"
             def logFile = new File(filePath)
 
             if (logFile.exists()) {
@@ -65,13 +73,12 @@ class JobExecutionThread implements Runnable {
                 // Remove the log file
                 new File(filePath as String).delete()
             }
-
-            // Remove the job id from the running jobs
-            notifyEnd()
         } else {
-            log.info("Logs not retrieved !")
+            log.error("${logPrefix()} Logs not retrieved !")
         }
 
+        // Remove the job id from the running jobs
+        notifyEnd()
     }
 
     void kill() {
@@ -79,15 +86,14 @@ class JobExecutionThread implements Runnable {
             synchronized (runningJobs) {
                 runningJobs.remove(cytomineJobId)
             }
-            log.info("The job [${cytomineJobId}] has been killed successfully !")
+            log.info("${logPrefix()} The job [${cytomineJobId}] has been killed successfully !")
         }
         else {
-            log.info("The job [${cytomineJobId}] has not been killed !")
+            log.info("${logPrefix()} The job [${cytomineJobId}] has not been killed !")
         }
     }
 
     synchronized void notifyEnd() {
         runningJobs.remove(cytomineJobId)
     }
-
 }

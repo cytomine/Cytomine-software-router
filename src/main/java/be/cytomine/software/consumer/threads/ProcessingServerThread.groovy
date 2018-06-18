@@ -48,7 +48,7 @@ class ProcessingServerThread implements Runnable {
                     host: processingServer.getStr("host"),
                     port: processingServer.getStr("port") as Integer,
                     user: processingServer.getStr("username"),
-                    keyFilePath: Main.configFile.keyFilePath
+                    keyFilePath: Main.configFile.cytomine.software.sshKeysFile
             )
 
             log.info("Processing server : ${processingServer.getStr("name")}")
@@ -71,49 +71,67 @@ class ProcessingServerThread implements Runnable {
         channel.basicConsume(mapMessage["name"] as String, true, consumer)
 
         while (true) {
-            log.info("ProcessingServerThread waiting on queue : ${mapMessage["name"]}")
+            def logPrefix = "[${processingServer.getStr("name")}]"
+            log.info("${logPrefix} Thread waiting on queue : ${mapMessage["name"]}")
 
             QueueingConsumer.Delivery delivery = consumer.nextDelivery()
             String message = new String(delivery.getBody())
 
             def mapMessage = jsonSlurper.parseText(message)
+            log.info("${logPrefix} Received message: ${mapMessage}")
 
             switch (mapMessage["requestType"]) {
-                case "execute": // TODO : check
-                    log.info("Try pulling the image")
+                case "execute":
+                    Long jobId = mapMessage["jobId"] as Long
+                    logPrefix += "[Job ${jobId}]"
+                    log.info("${logPrefix} Try to execute... ")
 
+                    log.info("${logPrefix} Try to find image... ")
                     def pullingCommand = mapMessage["pullingCommand"] as String
                     def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
                     def imageName = temp.substring(0, temp.indexOf(" "))
 
+                    Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
                     synchronized (Main.pendingPullingTable) {
-                        if (Main.pendingPullingTable.contains(imageName)) {
-                            log.info("The image [${imageName}] is currently being pulled !")
-                            return
+                        def start = System.currentTimeSeconds()
+                        while (Main.pendingPullingTable.contains(imageName)) {
+                            def status = "The image [${imageName}] is currently being pulled ! Wait..."
+                            log.warn("${logPrefix} ${status}")
+                            Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.WAIT, 0, status)
+
+                            if (System.currentTimeSeconds() - start > 1800) {
+                                status = "A problem occurred during the pulling process !"
+                                Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.FAILED, 0, status)
+                                return
+                            }
+
+                            sleep(60000)
                         }
                     }
 
-                    def imageExists = new File("${Main.configFile.imagesDirectory}/${imageName}").exists()
+                    def imageExists = new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()
 
                     def pullingResult = 0
                     if (!imageExists) {
+                        log.info("${logPrefix} Image not found locally ")
+                        log.info("${logPrefix} Try pulling image... ")
                         def process = pullingCommand.execute()
                         process.waitFor()
                         pullingResult = process.exitValue()
 
                         if (pullingResult == 0) {
-                            def movingProcess = ("mv ${imageName} ${Main.configFile.imagesDirectory}").execute()
+                            def movingProcess = ("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}").execute()
                             movingProcess.waitFor()
                         }
                     }
 
                     if (imageExists || pullingResult == 0) {
-                        Long jobId = mapMessage["jobId"] as Long
+                        log.info("${logPrefix} Found image!")
 
                         String command = ""
                         mapMessage["command"].each { command += it.toString() + " " }
 
-                        log.info("Job launched via the processing server : ${processingServer.getStr("name")}")
+                        log.info("${logPrefix} Job in queue!")
                         Runnable jobExecutionThread = new JobExecutionThread(
                                 processingMethod: processingMethod,
                                 command: command,
@@ -129,14 +147,16 @@ class ProcessingServerThread implements Runnable {
 
                         Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.INQUEUE, 0)
                     } else {
-                        log.info("A problem occurred during the pulling process !")
+                        def status = "A problem occurred during the pulling process !"
+                        log.error("${logPrefix} ${status}")
+                        Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.FAILED, 0, status)
                     }
 
                     break
                 case "kill":
                     def jobId = mapMessage["jobId"] as Long
 
-                    log.info("Try killing the job : ${jobId}")
+                    log.info("${logPrefix} Try killing the job : ${jobId}")
 
                     synchronized (runningJobs) {
                         if (runningJobs.containsKey(jobId)) {

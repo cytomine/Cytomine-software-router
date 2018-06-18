@@ -51,16 +51,17 @@ class CommunicationThread implements Runnable {
         JsonSlurper jsonSlurper = new JsonSlurper()
 
         while (true) {
-            log.info("Communication thread waiting on queue : " + queueName)
+            log.info("[Communication] Thread waiting on queue : " + queueName)
 
             // Waiting for a new message
             QueueingConsumer.Delivery delivery = consumer.nextDelivery()
             String message = new String(delivery.getBody())
+            log.info("[Communication] Received message: ${message}")
 
             def mapMessage = jsonSlurper.parseText(message)
             switch (mapMessage["requestType"]) {
                 case "addProcessingServer":
-                    log.info("Add a new processing server : " + mapMessage["name"])
+                    log.info("[Communication] Add a new processing server : " + mapMessage["name"])
 
                     ProcessingServer processingServer = Main.cytomine.getProcessingServer(mapMessage["processingServerId"] as Long)
 
@@ -70,7 +71,7 @@ class CommunicationThread implements Runnable {
                     executorService.execute(processingServerThread)
                     break
                 case "addSoftwareUserRepository":
-                    log.info("Add a new software user repository")
+                    log.info("[Communication] Add a new software user repository")
                     log.info("============================================")
                     log.info("username          : ${mapMessage["username"]}")
                     log.info("dockerUsername    : ${mapMessage["dockerUsername"]}")
@@ -106,7 +107,7 @@ class CommunicationThread implements Runnable {
 
                     break
                 case "refreshRepositories":
-                    log.info("Refresh all the repositories")
+                    log.info("[Communication] Refresh all software user repositories")
 
                     repositoryManagerThread.refreshAll()
                     break

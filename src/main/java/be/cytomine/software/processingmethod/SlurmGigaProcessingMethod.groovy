@@ -49,24 +49,28 @@ class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
 
         def success = false
         def retryOnError = true
+        def errorMessage = ""
         for (int i = 0; i < RETRY_ON_ERROR && retryOnError && !success; i++) {
             log.info("Attempt : ${(i + 1)}")
             try {
                 def imageExistsOnServer = Boolean.parseBoolean((communication.executeCommand(existCommand) as String).trim())
                 if (!imageExistsOnServer) {
-                    communication.copyLocalToRemote("./${Main.configFile.imagesDirectory}/", "./", imageName)
+                    log.info("Image not found on processing server, copying it.")
+                    communication.copyLocalToRemote("${Main.configFile.cytomine.software.path.softwareImages}/", "./", imageName)
                 }
                 success = true
             } catch (JSchException ex) {
-                log.info(ex.getMessage())
+                errorMessage = ex.getMessage()
+                log.info(errorMessage)
                 retryOnError = true
             } catch (Exception ex) {
-                log.info(ex.getMessage())
+                errorMessage = ex.getMessage()
+                log.info(errorMessage)
                 retryOnError = false
             }
         }
 
-        if (!success) return -1
+        if (!success) return [jobId:-1, message:errorMessage]
 
         // Execute the command on the processing server
         def executionCommand = '''echo "#!/bin/bash
@@ -83,18 +87,19 @@ export PATH=$PATH:/home/mass/opt/gridbin/bin
                 def responseWithoutColorCode = response.replaceAll('\u001B\\[[;\\d]*m', '')
 
                 def jobId = (responseWithoutColorCode =~ /(\d+)/)
-
-                return jobId.find() ? jobId.group() as Integer : -1
+                return [jobId: jobId.find() ? jobId.group() as Integer : -1, message: ""]
             } catch (JSchException ex) {
-                log.info("SSH exception : ${ex.getMessage()}")
+                errorMessage = ex.getMessage()
+                log.info(errorMessage)
                 retryOnError = true
             } catch (Exception ex) {
-                log.info("Unknown exceptin : ${ex.getMessage()}")
+                errorMessage = ex.getMessage()
+                log.info(errorMessage)
                 retryOnError = false
             }
         }
 
-        return -1
+        return [jobId: -1, message: errorMessage]
     }
 
 }

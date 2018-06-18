@@ -1,21 +1,23 @@
-cytomineCoreURL = "http://localhost:8080"
-
 // RabbitMQ Cytomine user (must be super admin)
-publicKey = "XXX"
-privateKey = "XXX"
+cytomine.core.url = "http://localhost-core:8080"
+cytomine.core.publicKey = "VWX"
+cytomine.core.privateKey = "STU"
 
-rabbitAddress = "localhost"
-rabbitPort = "5672"
-rabbitUsername = "router"
-rabbitPassword = "router"
+rabbitmq.host = "rabbitmq"
+rabbitmq.port = "5672"
+rabbitmq.username = "router"
+rabbitmq.password = "router"
 
-exchangeCommunication = "exchangeCommunication"
-queueCommunication = "queueCommunication"
+cytomine.software.communication.exchange = "exchangeCommunication"
+cytomine.software.communication.queue = "queueCommunication"
 
-logsDirectory = "algo/logs/"
-dataDirectory = "algo/data/"
-imagesDirectory = "algo/images/"
+cytomine.software.path.jobs = "/data/jobs"
+cytomine.software.path.softwareSources = "/data/softwares/code"
+cytomine.software.path.softwareImages = "/data/softwares/images"
+cytomine.software.sshKeysFile = "/data/ssh/id_rsa"
+cytomine.software.descriptorFile = "descriptor.json"
 
-softwareDescriptorName = "descriptor.json"
+cytomine.software.ssh.maxRetries = 3
 
-keyFilePath = ".ssh/id_rsa"
+// In seconds
+cytomine.software.repositoryManagerRefreshRate = 300

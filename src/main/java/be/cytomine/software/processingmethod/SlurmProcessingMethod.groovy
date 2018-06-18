@@ -23,7 +23,7 @@ import groovy.util.logging.Log4j
 @Log4j
 class SlurmProcessingMethod extends AbstractProcessingMethod {
 
-    protected final def DEFAULT_TIME = '10:00'
+    protected final def DEFAULT_TIME = '60:00'
 
     @Override
     def executeJob(def command, def serverParameters) {
@@ -51,24 +51,28 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
 
         def success = false
         def retryOnError = true
+        def errorMessage = ""
         for (int i = 0; i < RETRY_ON_ERROR && retryOnError && !success; i++) {
             log.info("Attempt : ${(i + 1)}")
             try {
                 def imageExistsOnServer = Boolean.parseBoolean((communication.executeCommand(existCommand) as String).trim())
                 if (!imageExistsOnServer) {
-                    communication.copyLocalToRemote("./${Main.configFile.imagesDirectory}/", "./", imageName)
+                    log.info("Image not found on processing server, copying it.")
+                    communication.copyLocalToRemote("${Main.configFile.cytomine.software.path.softwareImages}/", "./", imageName)
                 }
                 success = true
             } catch (JSchException ex) {
-                log.info(ex.getMessage())
+                errorMessage = ex.getMessage()
+                log.info(errorMessage)
                 retryOnError = true
             } catch (Exception ex) {
-                log.info(ex.getMessage())
+                errorMessage = ex.getMessage()
+                log.info(errorMessage)
                 retryOnError = false
             }
         }
 
-        if (!success) return -1
+        if (!success) return [jobId:-1, message:errorMessage]
 
         // Execute the command on the processing server
         def executionCommand = '''echo "#!/bin/bash
@@ -84,17 +88,19 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
                 def responseWithoutColorCode = response.replaceAll('\u001B\\[[;\\d]*m', '')
 
                 def jobId = (responseWithoutColorCode =~ /(\d+)/)
-                return jobId.find() ? jobId.group() as Integer : -1
+                return [jobId: jobId.find() ? jobId.group() as Integer : -1, message: ""]
             } catch (JSchException ex) {
-                log.info(ex.getMessage())
+                errorMessage = ex.getMessage()
+                log.info(errorMessage)
                 retryOnError = true
             } catch (Exception ex) {
-                log.info(ex.getMessage())
+                errorMessage = ex.getMessage()
+                log.info(errorMessage)
                 retryOnError = false
             }
         }
 
-        return -1
+        return [jobId: -1, message: errorMessage]
     }
 
     @Override
@@ -113,7 +119,7 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
         for (int i = 0; i < RETRY_ON_ERROR && retryOnError; i++) {
             log.info("Attempt : ${(i + 1)}")
             try {
-                communication.copyRemoteToLocal(".", "${Main.configFile.logsDirectory}/${outputFile}.out", "${jobId}.out")
+                communication.copyRemoteToLocal(".", "${Main.configFile.cytomine.software.path.jobs}/${outputFile}.out", "${jobId}.out")
                 return true
             } catch (JSchException ex) {
                 log.info(ex.getMessage())

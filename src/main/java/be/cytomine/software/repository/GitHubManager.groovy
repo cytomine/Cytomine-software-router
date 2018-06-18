@@ -47,10 +47,10 @@ class GitHubManager extends AbstractRepositoryManager {
         def content = currentRepository.getDirectoryContent(".", release as String)
 
         for (def element : content) {
-            if (element.getName().trim().toLowerCase() == Main.configFile.softwareDescriptorName) {
+            if (element.getName().trim().toLowerCase() == Main.configFile.cytomine.software.descriptorFile) {
                 def url = new URL(element.getDownloadUrl())
                 def readableByteChannel = Channels.newChannel(url.openStream())
-                def filename = (Main.configFile.dataDirectory as String) + element.getName()
+                def filename = (Main.configFile.cytomine.software.path.softwareSources as String) + element.getName()
                 def fileOutputStream = new FileOutputStream(filename)
                 fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE)
 

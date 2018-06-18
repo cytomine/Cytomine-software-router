@@ -79,19 +79,28 @@ class Interpreter {
     def parseSoftware() {
         String name = descriptor?."name"
 
-        String defaultProcessingServerName = descriptor?."default-processing-server-name"
-        if (!defaultProcessingServerName) throw new BoutiquesException("The default processing server name is missing !")
+        String defaultProcessingServerName = descriptor?."default-processing-server-name" ?: 'local-server'
 
         Long processingServerId = -1L
+        Long defaultProcessingServerId = -1L
+        def minIndex = Integer.MAX_VALUE
         ProcessingServerCollection processingServers = Main.cytomine.getProcessingServerCollection()
         for (int i = 0; i < processingServers.size(); i++) {
             ProcessingServer currentProcessingServer = processingServers.get(i)
             if (currentProcessingServer.getStr("name").trim().toLowerCase() == defaultProcessingServerName.trim().toLowerCase()) {
                 processingServerId = currentProcessingServer.getId()
             }
+
+            if (currentProcessingServer.getInt("index") < minIndex) {
+                minIndex = currentProcessingServer.getStr("index")
+                defaultProcessingServerId = currentProcessingServer.getId()
+            }
         }
 
-        if (processingServerId == -1L) throw new BoutiquesException("The processing server [${defaultProcessingServerName}] was not found !")
+        if (processingServerId == -1L) {
+            log.warn("The processing server [${defaultProcessingServerName}] was not found, replacing by default server")
+            processingServerId = defaultProcessingServerId
+        }
 
         return ["name": name, "processingServerId": processingServerId]
     }

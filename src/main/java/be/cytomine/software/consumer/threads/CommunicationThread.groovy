@@ -105,6 +105,9 @@ class CommunicationThread implements Runnable {
                         }
                     }
 
+                    // Refresh all after add
+                    repositoryManagerThread.refreshAll()
+
                     break
                 case "refreshRepositories":
                     log.info("[Communication] Refresh all software user repositories")

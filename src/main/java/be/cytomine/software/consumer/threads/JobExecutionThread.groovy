@@ -71,7 +71,8 @@ class JobExecutionThread implements Runnable {
 
                 if (logFile.exists()) {
                     // Upload the log file as an attachedFile to the Cytomine-core
-                    Main.cytomine.uploadAttachedFile(filePath as String, "Job", cytomineJobId as Long)
+                    Main.cytomine.uploadAttachedFile(filePath as String, "be.cytomine.processing.Job", cytomineJobId
+                            as Long)
 
                     // Remove the log file
                     new File(filePath as String).delete()

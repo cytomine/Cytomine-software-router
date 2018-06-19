@@ -41,42 +41,48 @@ class JobExecutionThread implements Runnable {
 
     @Override
     void run() {
-        // Executes a job on a server using a processing method(slurm,...) and a communication method (SSH,...)
-        def result = processingMethod.executeJob(command, serverParameters, workingDirectory)
-        serverJobId = result['jobId']
-        if (serverJobId == -1) {
-            log.error("${logPrefix()} Job failed! Reason: ${result['message']}")
-            Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0, result['message'] as String)
-            return
-        }
-
-        log.info("${logPrefix()} Job launched successfully !")
-        log.info("${logPrefix()} Cytomine job id   : ${cytomineJobId}")
-        log.info("${logPrefix()} Server job id     : ${serverJobId}")
-
-        // Wait until the end of the job
-        while (processingMethod.isAlive(serverJobId)) {
-            log.info("${logPrefix()} Job is running !")
-
-            sleep((refreshRate as Long) * 1000)
-        }
-
-        // Retrieve the slurm job log
-        if (processingMethod.retrieveLogs(serverJobId, cytomineJobId, workingDirectory)) {
-            log.info("${logPrefix()} Logs retrieved successfully !")
-
-            def filePath = "${Main.configFile.cytomine.software.path.jobs}/${cytomineJobId}.out"
-            def logFile = new File(filePath)
-
-            if (logFile.exists()) {
-                // Upload the log file as an attachedFile to the Cytomine-core
-                Main.cytomine.uploadAttachedFile(filePath as String, "Job", cytomineJobId as Long)
-
-                // Remove the log file
-                new File(filePath as String).delete()
+        try {
+            // Executes a job on a server using a processing method(slurm,...) and a communication method (SSH,...)
+            def result = processingMethod.executeJob(command, serverParameters, workingDirectory)
+            serverJobId = result['jobId']
+            if (serverJobId == -1) {
+                log.error("${logPrefix()} Job failed! Reason: ${result['message']}")
+                Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0, result['message'] as String)
+                return
             }
-        } else {
-            log.error("${logPrefix()} Logs not retrieved !")
+
+            log.info("${logPrefix()} Job launched successfully !")
+            log.info("${logPrefix()} Cytomine job id   : ${cytomineJobId}")
+            log.info("${logPrefix()} Server job id     : ${serverJobId}")
+
+            // Wait until the end of the job
+            while (processingMethod.isAlive(serverJobId)) {
+                log.info("${logPrefix()} Job is running !")
+
+                sleep((refreshRate as Long) * 1000)
+            }
+
+            // Retrieve the slurm job log
+            if (processingMethod.retrieveLogs(serverJobId, cytomineJobId, workingDirectory)) {
+                log.info("${logPrefix()} Logs retrieved successfully !")
+
+                def filePath = "${Main.configFile.cytomine.software.path.jobs}/${cytomineJobId}.out"
+                def logFile = new File(filePath)
+
+                if (logFile.exists()) {
+                    // Upload the log file as an attachedFile to the Cytomine-core
+                    Main.cytomine.uploadAttachedFile(filePath as String, "Job", cytomineJobId as Long)
+
+                    // Remove the log file
+                    new File(filePath as String).delete()
+                }
+            } else {
+                log.error("${logPrefix()} Logs not retrieved !")
+            }
+        }
+        catch (Exception e) {
+            // Indeterminate status because job could have been launched before the exception
+            Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.INDETERMINATE, 0, e.getMessage())
         }
 
         // Remove the job id from the running jobs
@@ -89,9 +95,11 @@ class JobExecutionThread implements Runnable {
                 runningJobs.remove(cytomineJobId)
             }
             log.info("${logPrefix()} The job [${cytomineJobId}] has been killed successfully !")
+            Main.cytomine.changeStatus(cytomineJobId, 8, 0) // Cytomine.JobStatus.KILLED = 8
         }
         else {
             log.info("${logPrefix()} The job [${cytomineJobId}] has not been killed !")
+            Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.INDETERMINATE, 0)
         }
     }
 

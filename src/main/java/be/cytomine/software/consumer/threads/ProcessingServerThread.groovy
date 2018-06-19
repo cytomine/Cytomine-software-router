@@ -171,6 +171,9 @@ class ProcessingServerThread implements Runnable {
                             (runningJobs.get(jobId) as JobExecutionThread).kill()
                             runningJobs.remove(jobId)
                         }
+                        else {
+                            Main.cytomine.changeStatus(jobId, 8, 0) // Cytomine.JobStatus.KILLED = 8
+                        }
                     }
 
                     break

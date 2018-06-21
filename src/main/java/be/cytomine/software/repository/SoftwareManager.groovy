@@ -149,10 +149,10 @@ class SoftwareManager {
                 command as String,
                 pullingCommand as String)
 
-//        if (software.description?.trim()) {
-//            Main.cytomine.addDescription(resultSoftware.getId(), "be.cytomine.processing.Software",
-//                    software.description as String)
-//        }
+        if (software.description?.trim()) {
+            Main.cytomine.addDescription(resultSoftware.getId(), "be.cytomine.processing.Software",
+                    software.description as String)
+        }
 
         // Load constraints
         ParameterConstraintCollection constraints = Main.cytomine.getParameterConstraints()
@@ -176,6 +176,12 @@ class SoftwareManager {
                     element.commandLineFlag as String)
 
             log.info(element)
+
+            // Add the description
+            if (element.description?.trim()) {
+                Main.cytomine.addDescription(resultSoftwareParameter.getId(), "be.cytomine.processing.SoftwareParameter",
+                        element.description as String)
+            }
 
             // Add the constraints
             if (element.integer != null) {

@@ -80,6 +80,7 @@ class Interpreter {
 
     def parseSoftware() {
         String name = descriptor?."name"
+        String description = descriptor?."description"
 
         String defaultProcessingServerName = descriptor?."default-processing-server-name" ?: 'local-server'
 
@@ -104,7 +105,7 @@ class Interpreter {
             processingServerId = defaultProcessingServerId
         }
 
-        return ["name": name, "processingServerId": processingServerId]
+        return ["name": name, "description": description, "processingServerId": processingServerId]
     }
 
     def parseParameters() {
@@ -124,48 +125,33 @@ class Interpreter {
     }
 
     def parseParameter(def json) {
-        String name = json?."name"
-        if (!name) throw new BoutiquesException("The parameter name is missing !")
+        String name = json?."id"
+        if (!name) throw new BoutiquesException("The parameter name (ID) is missing !")
 
         String type = json?."type"
         if (!type) throw new BoutiquesException("The parameter type is missing !")
 
-        boolean required = json?."optional" as boolean
-
-        String defaultValue = json?."default-value"
-        if (!defaultValue) defaultValue = ""
-
-        boolean setByServer = json?."set-by-server" as Boolean
-
-        boolean serverParameter = json?."server-parameter" as Boolean
-
-        String minimum = json?."minimum" as String
-
-        String maximum = json?."maximum" as String
-
-        String equals = json?."equals" as String
-
-        String inside = json?."in" as String
-
-        String uri = json?."uri"
-
-        String uriPrintAttribut = json?."uri-print-attribut"
-
-        String uriSortAttribut = json?."uri-sort-attribut"
-
-        return ["name": name,
+        def parameter =  ["name": name,
+                "humanName": json?."name" ?: "@id",
                 "type": type,
-                "required": required,
-                "defaultValue": defaultValue,
-                "setByServer": setByServer,
-                "serverParameter": serverParameter,
-                "minimum": minimum,
-                "maximum": maximum,
-                "equals": equals,
-                "in": inside,
-                "uri": uri,
-                "uriPrintAttribut": uriPrintAttribut,
-                "uriSortAttribut": uriSortAttribut]
+                "valueKey": json?."value-key" ?: "[@ID]",
+                "commandLineFlag": json?."command-line-flag" ?: "--@id",
+                "description": json?."description",
+                "required": !(json?."optional" ?: false),
+                "defaultValue": json?."default-value" ?: "",
+                "setByServer": json?."set-by-server" ?: false,
+                "serverParameter": json?."server-parameter"?: false,
+                "minimum": json?."minimum" as String,
+                "maximum": json?."maximum" as String,
+                "equals": json?."equals" as String,
+                "in": json?."values-choice" as String,
+                "uri": json?."uri",
+                "uriPrintAttribut": json?."uri-print-attribute",
+                "uriSortAttribut": json?."uri-sort-attribute"]
+
+        return parameter.collectEntries {
+            [(it.key): (it.value as String)?.replaceAll("@ID", name.toUpperCase())?.replaceAll("@id", name)]
+        }
     }
 
 }

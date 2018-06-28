@@ -114,10 +114,10 @@ class Main {
                     if (softwareManager.gitHubManager.getClass().getName() == elem.gitHubManager.getClass().getName() &&
                             softwareManager.gitHubManager.username == elem.gitHubManager.username &&
                             softwareManager.dockerHubManager.username == elem.dockerHubManager.username &&
-                            !elem.prefixes.contains(currentSoftwareUserRepository.getStr("prefix"))) {
+                            !elem.prefixes.containsKey(currentSoftwareUserRepository.getStr("prefix"))) {
 
                         // Add the new prefix to the prefix list
-                        elem.prefixes.add(currentSoftwareUserRepository.getStr("prefix"))
+                        elem.prefixes << [(currentSoftwareUserRepository.getStr("prefix")): currentSoftwareUserRepository.getLong("id")]
                         repositoryManagerExist = true
 
                         // Populate the software table with existing Cytomine software

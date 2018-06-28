@@ -91,8 +91,8 @@ class CommunicationThread implements Runnable {
                             repositoryManagerExist = true
 
                             // If the repository manager already exists and doesn't have the prefix yet, add it
-                            if (!elem.prefixes.contains(mapMessage["prefix"])) {
-                                elem.prefixes.add(mapMessage["prefix"])
+                            if (!elem.prefixes.containsKey(mapMessage["prefix"])) {
+                                elem.prefixes << [(mapMessage["prefix"]): mapMessage["id"]]
                             }
                             break
                         }

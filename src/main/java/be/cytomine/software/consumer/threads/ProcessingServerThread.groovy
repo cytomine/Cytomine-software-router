@@ -40,7 +40,11 @@ class ProcessingServerThread implements Runnable {
     ProcessingServerThread(Channel channel, def mapMessage, ProcessingServer processingServer) {
         this.channel = channel
         this.mapMessage = mapMessage
-        this.processingServer = processingServer
+        updateProcessingServer(processingServer)
+    }
+
+    def updateProcessingServer(def newProcessingServer) {
+        this.processingServer = newProcessingServer
 
         try {
             processingMethod = AbstractProcessingMethod.newInstance(this.processingServer.getStr("processingMethodName"))
@@ -172,9 +176,14 @@ class ProcessingServerThread implements Runnable {
                             runningJobs.remove(jobId)
                         }
                         else {
-                            Main.cytomine.changeStatus(jobId, 8, 0) // Cytomine.JobStatus.KILLED = 8
+                            Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.KILLED, 0)
                         }
                     }
+
+                    break
+                case "updateProcessingServer":
+                    ProcessingServer processingServer = Main.cytomine.getProcessingServer(mapMessage["processingServerId"] as Long)
+                    updateProcessingServer(processingServer)
 
                     break
             }

@@ -33,22 +33,24 @@ import java.util.concurrent.Executors
 @Log4j
 class SoftwareManager {
 
-    def prefixes = []
+    def prefixes = [:]
     def softwareTable = [:]
+    def name
 
     GitHubManager gitHubManager
     DockerHubManager dockerHubManager
-    Long idSoftwareUserRepository
 
     SoftwareManager(def gitHubUsername, def dockerUsername, def prefix, def idSoftwareUserRepository) throws ClassNotFoundException {
         gitHubManager = new GitHubManager(gitHubUsername as String)
         dockerHubManager = new DockerHubManager(username: dockerUsername as String)
-        prefixes.add(prefix)
-        this.idSoftwareUserRepository = idSoftwareUserRepository
+        prefixes << [(prefix): idSoftwareUserRepository]
+        name =  "SoftwareManager $gitHubUsername / $dockerUsername"
     }
 
     def updateSoftware() {
+        log.info("Refresh repository manager ${name} with prefixes: ${prefixes.keySet()}")
         def repositories = dockerHubManager.getRepositories()
+        log.info(repositories)
         repositories.each { repository ->
             if (startsWithKnownPrefix(repository as String)) {
                 log.info("Repository : ${repository}")
@@ -98,13 +100,12 @@ class SoftwareManager {
                     }
                 }
             }
-
         }
     }
 
     private def startsWithKnownPrefix(def repository) {
         return prefixes.find { prefix ->
-            (repository as String).trim().toLowerCase().startsWith((prefix as String).trim().toLowerCase())
+            (repository as String).trim().toLowerCase().startsWith((prefix.key as String).trim().toLowerCase())
         }
     }
 
@@ -124,7 +125,10 @@ class SoftwareManager {
 
         new File(filename).delete()
 
-        return addSoftwareToCytomine(release as String, software, command, arguments, pullingCommand)
+        def idSoftwareUserRepository = startsWithKnownPrefix(repository).value
+
+        return addSoftwareToCytomine(release as String, software, command, arguments, pullingCommand,
+                idSoftwareUserRepository)
     }
 
     /**
@@ -138,12 +142,13 @@ class SoftwareManager {
      * @return the newly added piece of software
      * @throws CytomineException : exceptions related to the Cytomine java client
      */
-    private def addSoftwareToCytomine(def version, def software, def command, def arguments, def pullingCommand) throws CytomineException {
+    private def addSoftwareToCytomine(def version, def software, def command, def arguments, def pullingCommand,
+                                      def idSoftwareUserRepository) throws CytomineException {
         // Add the piece of software
         def resultSoftware = Main.cytomine.addSoftware(
                 version as String,
                 software.name as String,
-                idSoftwareUserRepository as Long,
+                idSoftwareUserRepository,
                 software.processingServerId as Long,
                 "",
                 command as String,

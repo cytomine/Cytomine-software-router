@@ -44,7 +44,6 @@ class RepositoryManagerThread implements Runnable {
             log.info("Amount of repository managers : ${repositoryManagers.size()}")
 
             if (repositoryManagers.size() > 0) {
-                log.info("Refresh repository manager ${index + 1} with prefixes: ${(repositoryManagers.get(index) as SoftwareManager).prefixes}")
                 (repositoryManagers.get(index) as SoftwareManager).updateSoftware()
 
                 index = ++index % repositoryManagers.size()

@@ -38,31 +38,42 @@ class DockerHubManager {
     }
 
     def getRepositories() throws FileNotFoundException {
-        def result = getRequest("https://registry.hub.docker.com/v2/repositories/${username}/")
-
         def repositoriesList = []
-        if (result."count" != null && (result?."count" as Integer) > 0) {
-            def repositories = result?."results"
-            repositories.each { elem ->
-                repositoriesList.add(elem."name" as String)
+
+        def url = "https://registry.hub.docker.com/v2/repositories/${username}/"
+        while (url) {
+            def result = getRequest(url)
+
+            if (result?.count != null && (result?.count as Integer) > 0) {
+                def repositories = result?.results
+                repositories.each { elem ->
+                    repositoriesList.add(elem."name" as String)
+                }
             }
+
+            url = result?.next
         }
 
         return repositoriesList
     }
 
     def getTags(def repository) throws FileNotFoundException {
-        def result = getRequest("https://registry.hub.docker.com/v2/repositories/${username as String}/${repository as String}/tags/")
-
         def tagsList = []
-        if (result."count" != null && (result?."count" as Integer) > 0) {
-            def tags = result?."results"
-            tags.each { elem ->
-                tagsList.add(elem."name" as String)
+
+        def url = "https://registry.hub.docker.com/v2/repositories/${username as String}/${repository as String}/tags/"
+        while (url) {
+            def result = getRequest(url)
+
+            if (result?.count != null && (result?.count as Integer) > 0) {
+                def tags = result?.results
+                tags.each { elem ->
+                    tagsList.add(elem."name" as String)
+                }
             }
+
+            url = result?.next
         }
 
         return tagsList
     }
-
 }

@@ -70,7 +70,7 @@ class Interpreter {
         if (!imageType) throw new BoutiquesException("The image type is missing !")
 
         String index = containerImage?."index"
-        if (!index) throw new BoutiquesException("The image index is missing !")
+//        if (!index) throw new BoutiquesException("The image index is missing !")
 
         String image = containerImage?."image"
         if (!image) throw new BoutiquesException("The image is missing !")

@@ -10,8 +10,12 @@ When using our software, we kindly ask you to cite our website url and related p
 
 ## Presentation
 
-Cytomine-software-router maintains the communication between Cytomine-core & a rabbitMQ server to launch & track the datamining jobs on remote instances.
+Cytomine-software-router maintains the communication between Cytomine-core & a rabbitMQ server to install Cytomine softwares from remote providers and launch & track jobs on remote processing servers.
 
-## How to install it
+## Install
 
-It is automatically installed with the Docker procedure. See our [Cytomine-bootstrap](https://github.com/cytomine/Cytomine-bootstrap).
+It is automatically installed with the Docker procedure. See our [Cytomine-bootstrap](https://github.com/cytomine-uliege/Cytomine-bootstrap).
+
+## Build
+
+`mvn package`

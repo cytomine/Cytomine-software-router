@@ -52,7 +52,6 @@ class Main {
     static void main(String[] args) {
         PropertyConfigurator.configure("log4j.properties");
 
-        log.info("GROOVY_HOME : ${System.getenv("GROOVY_HOME")}")
         log.info("PATH : ${System.getenv("PATH")}")
 
         // Create the directory for logs

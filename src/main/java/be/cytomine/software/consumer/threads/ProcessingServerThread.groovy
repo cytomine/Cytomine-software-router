@@ -43,7 +43,7 @@ class ProcessingServerThread implements Runnable {
         updateProcessingServer(processingServer)
     }
 
-    def updateProcessingServer(def newProcessingServer) {
+    def updateProcessingServer(ProcessingServer newProcessingServer) {
         this.processingServer = newProcessingServer
 
         try {

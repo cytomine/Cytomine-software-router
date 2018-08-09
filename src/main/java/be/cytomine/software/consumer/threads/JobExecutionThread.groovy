@@ -43,7 +43,7 @@ class JobExecutionThread implements Runnable {
     void run() {
         try {
             // Executes a job on a server using a processing method(slurm,...) and a communication method (SSH,...)
-            def result = processingMethod.executeJob(command, serverParameters, workingDirectory)
+            def result = processingMethod.executeJob(command, serverParameters, persistentDirectory, workingDirectory)
             serverJobId = result['jobId']
             if (serverJobId == -1) {
                 log.error("${logPrefix()} Job failed! Reason: ${result['message']}")

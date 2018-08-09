@@ -24,7 +24,7 @@ import groovy.util.logging.Log4j
 class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
 
     @Override
-    def executeJob(def command, def serverParameters, def workingDirectory) {
+    def executeJob(def command, def serverParameters, String persistentDirectory, String workingDirectory) {
         // Build the slurm arguments
         def output = workingDirectory?:'' + (workingDirectory ? File.separator : '') + '%A.out'
         def slurmCommand = 'sbatch -p Public --output=' + output + ' --time=' + DEFAULT_TIME
@@ -57,7 +57,7 @@ class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
                 def imageExistsOnServer = Boolean.parseBoolean((communication.executeCommand(existCommand) as String).trim())
                 if (!imageExistsOnServer) {
                     communication.copyLocalToRemote("${Main.configFile.cytomine.software.path.softwareImages}/",
-                            "${imageName.getParent()}/", imageName.getName())
+                            "$persistentDirectory", imageName.getName())
                 }
                 success = true
             } catch (JSchException ex) {

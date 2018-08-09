@@ -51,7 +51,7 @@ abstract class AbstractProcessingMethod {
         return instance
     }
 
-    def abstract executeJob(def command, def serverParameters, def workingDirectory)
+    def abstract executeJob(def command, def serverParameters, String persistentDirectory, String workingDirectory)
 
     def abstract isAlive(def jobId)
 

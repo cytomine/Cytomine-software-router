@@ -68,6 +68,7 @@ class SSH implements Communication {
         ((ChannelExec) channel).setErrStream(System.err)
 
         InputStream inputStream = channel.getInputStream()
+        InputStream errorStream = channel.getExtInputStream()
         channel.connect()
 
         boolean closed = false
@@ -86,6 +87,16 @@ class SSH implements Communication {
                 log.info("exit-status: ${channel.getExitStatus()}")
                 closed = true
             }
+        }
+
+        if(channel.getExitStatus() == 1){
+            String errorMsg
+            while (errorStream.available() > 0) {
+                int bytesRead = errorStream.read(temp, 0, 1024)
+                if (bytesRead < 0) break
+                errorMsg += new String(temp, 0, bytesRead)
+            }
+            log.error(errorMsg)
         }
 
         channel.disconnect()

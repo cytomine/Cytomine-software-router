@@ -101,6 +101,8 @@ class SSH implements Communication {
         from += File.separator + filename
         def prefix = null
 
+        log.info "scp from $from to $to"
+
         if (new File(to as String).isDirectory()) {
             prefix = to + File.separator
         }
@@ -174,7 +176,7 @@ class SSH implements Communication {
             try {
                 if (fos != null) fos.close()
             } catch (Exception ex) {
-                System.out.println(ex)
+                log.error(ex)
             }
         }
 

@@ -75,6 +75,7 @@ class JobExecutionThread implements Runnable {
                             as Long)
 
                     // Remove the log file
+                    log.info("${logPrefix()} Logs attached to the job and deleted from the disk")
                     new File(filePath as String).delete()
                 }
             } else {

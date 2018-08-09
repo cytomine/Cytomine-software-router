@@ -28,7 +28,7 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
     @Override
     def executeJob(def command, def serverParameters, def workingDirectory) {
         // Build the slurm arguments
-        def output = workingDirectory?:'' + (workingDirectory ? File.separator : '') + '%A.out'
+        def output = (workingDirectory?:'') + (workingDirectory ? File.separator : '') + '%A.out'
         def slurmCommand = 'sbatch --output=' + output + ' --time=' + DEFAULT_TIME
 
         if (serverParameters != null) {

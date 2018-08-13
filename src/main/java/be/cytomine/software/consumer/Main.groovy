@@ -69,6 +69,18 @@ class Main {
         // Cytomine instance
         cytomine = new Cytomine(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
 
+        boolean success = false
+
+        int i = 0;
+        while ( i < Main.configFile.cytomine.software.ssh.maxRetries && !success) {
+            if(cytomine.getCurrentUser().getId() != null) success = true
+            else{
+                log.info "connection not found with Cytomine ... retry"
+                sleep(2*60*1000)
+            }
+            i++
+        }
+
         log.info("Launch repository thread")
         def repositoryManagementThread = launchRepositoryManagerThread()
 

@@ -1,6 +1,7 @@
 package src.be.cytomine.software.consumer
 
 import be.cytomine.client.Cytomine
+import be.cytomine.client.CytomineException
 import be.cytomine.client.collections.AmqpQueueCollection
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Channel
@@ -53,6 +54,8 @@ class RabbitWorker {
         // Cytomine connection
         cytomine = new Cytomine(configFile.cytomineCoreURL as String, configFile.publicKey as String, configFile.privateKey as String)
 
+        ping()
+
         // Retrieve all the software existing on the core
         getAlreadyExistingSoftwares()
 
@@ -62,6 +65,22 @@ class RabbitWorker {
 
         launchThreadsForAlreadyExistingSoftwares()
     }
+
+    static void ping()  {
+        int limit = 5
+        int i=0
+        while (i < limit){
+            try {
+                log.info("Connected as " + cytomine.getCurrentUser().get("username"))
+                break
+            } catch (CytomineException e) {
+                log.error("Connection not established. Retry : "+i)
+                i++
+                sleep(30*1000)
+            }
+        }
+    }
+
 
     static getAlreadyExistingSoftwares() {
         AmqpQueueCollection amqpCollection = cytomine.getAmqpQueue()

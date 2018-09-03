@@ -1,15 +1,5 @@
 package src.be.cytomine.software.consumer
 
-import be.cytomine.client.Cytomine
-import be.cytomine.client.CytomineException
-import be.cytomine.client.collections.AmqpQueueCollection
-import com.rabbitmq.client.ConnectionFactory
-import com.rabbitmq.client.Channel
-import com.rabbitmq.client.Connection
-import groovy.util.logging.Log4j
-
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 /*
  * Copyright (c) 2009-2015. Authors: see NOTICE file.
  *
@@ -25,6 +15,19 @@ import java.util.concurrent.Executors
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import be.cytomine.client.Cytomine
+import be.cytomine.client.CytomineException
+import be.cytomine.client.collections.AmqpQueueCollection
+import be.cytomine.client.models.User
+import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.Channel
+import com.rabbitmq.client.Connection
+import groovy.util.logging.Log4j
+
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
 @Log4j
 class RabbitWorker {
 
@@ -71,12 +74,17 @@ class RabbitWorker {
         int i=0
         while (i < limit){
             try {
-                log.info("Connected as " + cytomine.getCurrentUser().get("username"))
-                break
+                User current = cytomine.getCurrentUser()
+                if(current.getId() != null) {
+                    log.info("Connected as " + current.get("username"))
+                    break
+                }
+                sleep(30*1000)
+                i++
             } catch (CytomineException e) {
                 log.error("Connection not established. Retry : "+i)
-                i++
                 sleep(30*1000)
+                i++
             }
         }
     }

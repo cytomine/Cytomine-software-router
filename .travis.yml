@@ -10,7 +10,7 @@ jdk:
 
 cache:
   directories:
-  - "$HOME/.cache"
+    - "$HOME/.cache"
 
 env:
   global:
@@ -18,7 +18,6 @@ env:
     - secure: "aW+c1krND/RmDsvtfbBKVnHmaG0ZuP36TKiSweSfBjxir+ZZ+ThLS8o5IJ5tNyL240SvfUyB2zd4Hlnu3YiiL4dYbad/kqlkYOU426Jo8ii3dWmPEae6zaAS8AY7AzbfG/eCY3/F1/K6iw2GzekBNJplwnv5k6wAgi+WAuvlwGDuXBLtkXDrcoSNn6aHVkruNWTzbQlU3P7p0r74g9mhB4dbb1wtVMqv/igkpKeExQzTy69OtEvxQl0qN7yPiCKu2jXF7Zl4pv8zLZX/NxS00kRUpniO55+5fEF53jIyNxlbNlZ0sE20/NneOthNq3Lh+q6BWo8sTjsiEbbxLqlUjX9v4tzydStlT5kzZxiSHDbVcLsuYbjSDPElHMYUp8aLq94qLZ9lnVhlDH2rSlCtpBZfvO1OAVjl1Qpl77wDnMOgEkSaXm73l5vIXYmuRMTY8hRVqRbG/ivwURRpfGaNgbbv4lC5IpAv42kmr73k1/wU2JSb1ItS63owTC4wttv2k6Pd1m6kvvdQi73K/bedohLmyN79CprultmZVZBkaDOVkdUFiNFN7ZqXoQQ4GL9Jb+Rbmt8nd9UrnSKRKdeQUsWzKoHQ1YyjGI3eGcV+ObzIC0WvnhepzgE6U2k8GJKWhVNrp3shQzQ0KpOoWygb/uBbjfqYe/Lc86JdmdX+ZB4="
 
 script: true
-## Skip tests for now.
 
 after_success:
   - source continuous_integration/deploy.sh
@@ -33,7 +32,7 @@ deploy:
     api_key:
       secure: dPfdUgb6U+CjQRvQ3gXBJB7o+hfUrriWJMi9RosygZNRs5HP3BP84utV4sn4vBT1ypYOXR0dYQgL/Acvbxe1tFGg40E4xQjRzih1iKtnhu2/IvARf1gAP6Md5z8T90qo0RTJVYFPgCbUn7cJa0b9FNU6rwFPCemOuY2OiU+d5jb8mW1ZpjYiKWEcALYu+g82bf6pi5mSHvyGqPNUxzMMc+c3n/v1ou5KiEP5qkoNjcAu/p4gVrGjJSw0hxqAuJxf/vgguiTUxNHAzL1FM2uC7XwDtfhedfkiImxbzX6UzGMp5DsKWnQTRdn0yhK3QzHjkuTRiApWo1dabuhWVftUelob79bNw56hnX1aohyQUPM3+ycq4M1nmdwmRBKgV7F1YugfF/6/c9uiKpljjz7nGVCkbEDq/MV5Bsy6gXAbcOtNtPmOGJufLnuRmiG6U0FQA7zT2uvWwuWWnVfYlKQ/0g+TC6LqG+lTG25NvyN66DxqDVoUTqpe2Je4nEiGGDXG1waMvSVBB/jJSnYT/4LUkRQhaYjRzDGSnVaS8WDWTxXwUszEax5A/BeJPkRmc9UxCcu2uALAfvRz9rzewUtgn5JH8ZSSZfnM+uDfYW4d8C7KOrU36kSYz6j4fXEFGNp9rVQ8RlnQcB5h1bl/TqjZ2KM164uUGij/Z7Y64R6s9AQ=
     file_glob: true
-        file: target/*
+    file: target/*
     skip_cleanup: true
     on:
       condition: $DEPLOY = true

@@ -46,6 +46,7 @@ ARG RELEASE_PATH=https://github.com/${NAMESPACE}/Cytomine-software-router/releas
 ADD ${RELEASE_PATH}/cytomine-software-router-${VERSION}-jar-with-dependencies.jar /opt/cytomine-software-router.jar
 COPY log4j.properties /opt/log4j.properties
 
+RUN touch /tmp/addHosts.sh
 COPY deploy.sh /tmp/deploy.sh
 RUN chmod +x /tmp/deploy.sh
 

@@ -12,6 +12,6 @@ if [[ ! $(git tag -l v$VERSION) ]]; then
 
     mvn package
     cp log4j.properties docker/
-    cp target/cytomine-software-router-$VERSION-jar-with-dependendies.jar docker/
+    cp target/cytomine-software-router-$VERSION-jar-with-dependencies.jar docker/
     docker build --build-arg RELEASE_PATH="." -t cytomineuliege/software_router:latest -t cytomineuliege/software_router:v$VERSION docker/
 fi;

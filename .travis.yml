@@ -24,7 +24,7 @@ after_success:
 
 deploy:
   - provider: script
-    script: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" && docker push cytomineuliege/software_router:v$VERSION
+    script: echo $VERSION && docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" && docker push cytomineuliege/software_router:v$VERSION
     skip_cleanup: true
     on:
       condition: $DEPLOY = true

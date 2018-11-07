@@ -17,7 +17,7 @@
 FROM cytomine/java8:v1.2.0
 
 RUN apt-get -y update && \
-    apt-get -y install \
+    apt-get --no-install-recommends --no-install-suggests -y install \
         apt-transport-https \
         ca-certificates \
         iptables \
@@ -25,7 +25,8 @@ RUN apt-get -y update && \
         squashfs-tools \
         openssh-client \
         libarchive-dev \
-        python
+        python && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN dpkg-reconfigure locales
 

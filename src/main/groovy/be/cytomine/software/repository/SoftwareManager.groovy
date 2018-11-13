@@ -164,9 +164,11 @@ class SoftwareManager {
 
         // Add the arguments
         arguments.each { element ->
+            def type = (element.type as String).toLowerCase().capitalize()
+            if (type == 'Listdomain') type = 'ListDomain'
             def resultSoftwareParameter = Main.cytomine.addSoftwareParameter(
                     element.name as String,
-                    (element.type as String).toLowerCase().capitalize(),
+                    type,
                     resultSoftware.getId(),
                     element.defaultValue as String,
                     element.required.toBoolean(),

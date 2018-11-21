@@ -23,6 +23,7 @@ import be.cytomine.client.collections.SoftwareCollection
 import be.cytomine.client.collections.SoftwareUserRepositoryCollection
 import be.cytomine.client.models.Software
 import be.cytomine.client.models.SoftwareUserRepository
+import be.cytomine.client.models.User
 import be.cytomine.software.consumer.threads.CommunicationThread
 import be.cytomine.software.consumer.threads.ProcessingServerThread
 import be.cytomine.software.repository.AbstractRepositoryManager
@@ -70,6 +71,8 @@ class Main {
         // Cytomine instance
         cytomine = new Cytomine(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
 
+        ping()
+
         log.info("Launch repository thread")
         def repositoryManagementThread = launchRepositoryManagerThread()
 
@@ -81,6 +84,26 @@ class Main {
 
         log.info("Launch processing server threads")
         launchProcessingServerQueues()
+    }
+
+    static void ping() {
+        int limit = 20
+        int i=0
+        while (i < limit){
+            try {
+                User current = cytomine.getCurrentUser()
+                if(current.getId() != null) {
+                    log.info("Connected as " + current.get("username"))
+                    break
+                }
+                sleep(30000)
+                i++
+            } catch (CytomineException e) {
+                log.error("Connection not established. Retry : "+i)
+                sleep(30000)
+                i++
+            }
+        }
     }
 
     static void createRabbitMQConnection() {

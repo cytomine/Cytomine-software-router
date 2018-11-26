@@ -135,7 +135,7 @@ class Interpreter {
                 "humanName": json?."name" ?: "@id",
                 "type": type,
                 "valueKey": json?."value-key" ?: "[@ID]",
-                "commandLineFlag": json?."command-line-flag" ?: "--@id",
+                "commandLineFlag": json?."command-line-flag" ?: "",
                 "description": json?."description",
                 "required": !(json?."optional" ?: false),
                 "defaultValue": json?."default-value" ?: "",

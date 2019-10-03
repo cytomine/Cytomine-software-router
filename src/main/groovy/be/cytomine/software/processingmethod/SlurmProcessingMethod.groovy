@@ -121,7 +121,7 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
         for (int i = 0; i < RETRY_ON_ERROR && retryOnError; i++) {
             log.info("Attempt : ${(i + 1)}")
             try {
-                communication.copyRemoteToLocal(workingDirectory?:".", "${Main.configFile.cytomine.software.path.jobs}/${outputFile}.out", "${jobId}.out")
+                communication.copyRemoteToLocal(workingDirectory?:".", "${Main.configFile.cytomine.software.path.jobs}/log.out", "${jobId}.out")
                 return true
             } catch (JSchException ex) {
                 log.info(ex.getMessage())

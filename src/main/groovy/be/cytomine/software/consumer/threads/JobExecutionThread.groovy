@@ -66,7 +66,7 @@ class JobExecutionThread implements Runnable {
             if (processingMethod.retrieveLogs(serverJobId, cytomineJobId, workingDirectory)) {
                 log.info("${logPrefix()} Logs retrieved successfully !")
 
-                def filePath = "${Main.configFile.cytomine.software.path.jobs}/${cytomineJobId}.out"
+                def filePath = "${Main.configFile.cytomine.software.path.jobs}/log.out"
                 def logFile = new File(filePath)
 
                 if (logFile.exists()) {

@@ -1,6 +1,7 @@
 package be.cytomine.software.consumer.threads
 
 import be.cytomine.client.Cytomine
+import be.cytomine.client.models.Job
 
 /*
  * Copyright (c) 2009-2018. Authors: see NOTICE file.
@@ -61,6 +62,14 @@ class JobExecutionThread implements Runnable {
 
                 sleep((refreshRate as Long) * 1000)
             }
+
+            try {
+                Job job = Main.cytomine.getJob(cytomineJobId)
+                if (job.getInt('status') == Cytomine.JobStatus.INQUEUE) {
+                    Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0)
+                }
+            }
+            catch (Exception ignored) {}
 
             // Retrieve the slurm job log
             if (processingMethod.retrieveLogs(serverJobId, cytomineJobId, workingDirectory)) {

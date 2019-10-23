@@ -149,10 +149,16 @@ class Main {
                             Software currentSoftware = softwareCollection.get(j)
                             def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftwareUserRepository.getStr("name").trim().toLowerCase()
 
-                            if (currentSoftware && currentSoftware?.get('deprecated') && !currentSoftware?.getBool('deprecated')) {
-                                // Add an entry for a specific software
-                                elem.softwareTable.put(key, currentSoftware)
+                            log.info key
+
+                            try {
+                                if (currentSoftware && !currentSoftware?.getBool('deprecated')) {
+                                    // Add an entry for a specific software
+                                    elem.softwareTable.put(key, currentSoftware)
+                                }
                             }
+                            catch(Exception ignored) {}
+
                         }
 
                         break
@@ -167,10 +173,14 @@ class Main {
                         Software currentSoftware = softwareCollection.get(j)
                         def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftware.getStr("name").trim().toLowerCase()
 
-                        if (currentSoftware && currentSoftware?.get('deprecated') && !currentSoftware?.getBool('deprecated')) {
-                            // Add an entry for a specific software
-                            softwareManager.softwareTable.put(key, currentSoftware)
+                        log.info key
+                        try {
+                            if (currentSoftware && !currentSoftware?.getBool('deprecated')) {
+                                // Add an entry for a specific software
+                                softwareManager.softwareTable.put(key, currentSoftware)
+                            }
                         }
+                        catch(Exception ignored) {}
                     }
 
                     // Add the software manager

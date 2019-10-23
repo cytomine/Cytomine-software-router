@@ -149,7 +149,7 @@ class Main {
                             Software currentSoftware = softwareCollection.get(j)
                             def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftwareUserRepository.getStr("name").trim().toLowerCase()
 
-                            if (!currentSoftware.getBool('deprecated')) {
+                            if (currentSoftware && currentSoftware?.get('deprecated') && !currentSoftware?.getBool('deprecated')) {
                                 // Add an entry for a specific software
                                 elem.softwareTable.put(key, currentSoftware)
                             }
@@ -167,7 +167,7 @@ class Main {
                         Software currentSoftware = softwareCollection.get(j)
                         def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftware.getStr("name").trim().toLowerCase()
 
-                        if (!currentSoftware.getBool('deprecated')) {
+                        if (currentSoftware && currentSoftware?.get('deprecated') && !currentSoftware?.getBool('deprecated')) {
                             // Add an entry for a specific software
                             softwareManager.softwareTable.put(key, currentSoftware)
                         }

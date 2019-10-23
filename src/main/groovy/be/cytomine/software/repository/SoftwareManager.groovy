@@ -50,20 +50,20 @@ class SoftwareManager {
     def updateSoftware() {
         log.info("Refresh repository manager ${name} with prefixes: ${prefixes.keySet()}")
         def repositories = dockerHubManager.getRepositories()
-        log.info(repositories)
+
         repositories.each { repository ->
             if (startsWithKnownPrefix(repository as String)) {
-                log.info("Repository : ${repository}")
                 Software currentSoftware = softwareTable.get((repository as String).trim().toLowerCase()) as Software
+                log.info("Repository to refresh : ${repository} - Last version installed is ${currentSoftware?.get("softwareVersion")}")
                 def tags = dockerHubManager.getTags(repository as String)
                 if (tags.isEmpty()) {
-                    log.info "No Docker tags: skip software"
+                    log.info "-> No Docker tags: skip software"
                     return
                 }
 
                 if (currentSoftware != null) {
                     if (currentSoftware.get("softwareVersion") as String != tags.first() as String) {
-                        log.info("Update the software [${repository}]")
+                        log.info("-> Update the software [${repository}] - ${tags.first()}")
 
                         try {
                             def result = installSoftware(repository, tags.first())
@@ -74,17 +74,20 @@ class SoftwareManager {
                             ExecutorService executorService = Executors.newSingleThreadExecutor()
                             executorService.execute(imagePullerThread)
                         } catch (GHFileNotFoundException ex) {
-                            log.info("Error during the installation of [${repository}] : ${ex.getMessage()}")
+                            log.info("--> Error during the installation of [${repository}] : ${ex.getMessage()}")
                         } catch (BoutiquesException ex) {
-                            log.info("Boutiques exception : ${ex.getMessage()}")
+                            log.info("--> Boutiques exception : ${ex.getMessage()}")
                         } catch (CytomineException ex) {
-                            log.info("Error during the adding of [${repository}] to Cytomine : ${ex.getMessage()}")
+                            log.info("--> Error during the adding of [${repository}] to Cytomine : ${ex.getMessage()}")
                         } catch (Exception ex) {
-                            log.info("Unknown exception occurred : ${ex.getMessage()}")
+                            log.info("--> Unknown exception occurred : ${ex.getMessage()}")
                         }
                     }
+                    else {
+                        log.info "-> Last version is already installed. Skip."
+                    }
                 } else {
-                    log.info("Add the software [${repository}]")
+                    log.info("-> Add the software [${repository}] - ${tags.first()}")
 
                     try {
                         def result = installSoftware(repository, tags.first())
@@ -94,17 +97,19 @@ class SoftwareManager {
                         ExecutorService executorService = Executors.newSingleThreadExecutor()
                         executorService.execute(imagePullerThread)
                     } catch (GHFileNotFoundException ex) {
-                        log.info("Error during the installation of [${repository}] : ${ex.getMessage()}")
+                        log.info("--> Error during the installation of [${repository}] : ${ex.getMessage()}")
                     } catch (BoutiquesException ex) {
-                        log.info("Boutiques exception : ${ex.getMessage()}")
+                        log.info("--> Boutiques exception : ${ex.getMessage()}")
                     } catch (CytomineException ex) {
-                        log.info("Error during the adding of [${repository}] to Cytomine : ${ex.getMessage()}")
+                        log.info("--> Error during the adding of [${repository}] to Cytomine : ${ex.getMessage()} ${ex.getHttpCode()} ${ex.getMsg()}")
                     } catch (Exception ex) {
-                        log.info("Unknown exception occurred : ${ex.printStackTrace()}")
+                        log.info("--> Unknown exception occurred : ${ex.printStackTrace()}")
                     }
                 }
             }
         }
+
+        log.info "Finished to refresh."
     }
 
     private def startsWithKnownPrefix(def repository) {

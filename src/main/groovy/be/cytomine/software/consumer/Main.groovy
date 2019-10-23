@@ -149,8 +149,10 @@ class Main {
                             Software currentSoftware = softwareCollection.get(j)
                             def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftwareUserRepository.getStr("name").trim().toLowerCase()
 
-                            // Add an entry for a specific software
-                            elem.softwareTable.put(key, currentSoftware)
+                            if (!currentSoftware.getBool('deprecated')) {
+                                // Add an entry for a specific software
+                                elem.softwareTable.put(key, currentSoftware)
+                            }
                         }
 
                         break
@@ -165,8 +167,10 @@ class Main {
                         Software currentSoftware = softwareCollection.get(j)
                         def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftware.getStr("name").trim().toLowerCase()
 
-                        // Add an entry for a specific software
-                        softwareManager.softwareTable.put(key, currentSoftware)
+                        if (!currentSoftware.getBool('deprecated')) {
+                            // Add an entry for a specific software
+                            softwareManager.softwareTable.put(key, currentSoftware)
+                        }
                     }
 
                     // Add the software manager

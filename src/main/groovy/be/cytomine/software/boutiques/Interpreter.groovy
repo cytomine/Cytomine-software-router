@@ -138,7 +138,7 @@ class Interpreter {
                 "commandLineFlag": json?."command-line-flag" ?: "",
                 "description": json?."description",
                 "required": !(json?."optional" ?: false),
-                "defaultValue": json?."default-value" ?: "",
+                "defaultValue": (json?."default-value" != null) ? json?."default-value" : "",
                 "setByServer": json?."set-by-server" ?: false,
                 "serverParameter": json?."server-parameter"?: false,
                 "minimum": json?."minimum" as String,

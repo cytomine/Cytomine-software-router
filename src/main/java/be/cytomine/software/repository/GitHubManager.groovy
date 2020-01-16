@@ -27,6 +27,7 @@ class GitHubManager extends AbstractRepositoryManager {
 
     private GitHub gitHub
     private GHUser ghUser
+    private GHRateLimit ghRateLimit
 
     GitHubManager(String username) {
         super(username)
@@ -35,10 +36,13 @@ class GitHubManager extends AbstractRepositoryManager {
     @Override
     def connectToRepository(String username) {
         gitHub = GitHub.connectAnonymously()
+        ghRateLimit = gitHub.getRateLimit()
+        checkRateLimit()
         ghUser = gitHub.getUser(username)
     }
 
     def retrieveDescriptor(def repository, def release) throws GHFileNotFoundException {
+        checkRateLimit()
         def currentRepository = ghUser.getRepository((repository as String).trim().toLowerCase())
         if (currentRepository == null) {
             throw new GHFileNotFoundException("The repository doesn't exist !")
@@ -61,4 +65,9 @@ class GitHubManager extends AbstractRepositoryManager {
         throw new GHFileNotFoundException("The software descriptor doesn't exist !")
     }
 
+    private void checkRateLimit() {
+        if(ghRateLimit.remaining == 0){
+            log.error("API rate limit exceeded for this IP, limit will be reset at "+ghRateLimit.getResetDate())
+        }
+    }
 }

@@ -1,5 +1,7 @@
 package be.cytomine.software.boutiques
 
+import be.cytomine.client.collections.Collection
+
 /*
  * Copyright (c) 2009-2018. Authors: see NOTICE file.
  *
@@ -16,9 +18,7 @@ package be.cytomine.software.boutiques
  * limitations under the License.
  */
 
-import be.cytomine.client.collections.ProcessingServerCollection
 import be.cytomine.client.models.ProcessingServer
-import be.cytomine.software.consumer.Main
 import be.cytomine.software.exceptions.BoutiquesException
 import groovy.json.JsonSlurper
 import groovy.util.logging.Log4j
@@ -87,7 +87,7 @@ class Interpreter {
         Long processingServerId = -1L
         Long defaultProcessingServerId = -1L
         def minIndex = Integer.MAX_VALUE
-        ProcessingServerCollection processingServers = Main.cytomine.getProcessingServerCollection()
+        Collection<ProcessingServer> processingServers = Collection.fetch(ProcessingServer.class);
         for (int i = 0; i < processingServers.size(); i++) {
             ProcessingServer currentProcessingServer = processingServers.get(i)
             if (currentProcessingServer.getStr("name").trim().toLowerCase() == defaultProcessingServerName.trim().toLowerCase()) {

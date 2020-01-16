@@ -63,7 +63,7 @@ class CommunicationThread implements Runnable {
                 case "addProcessingServer":
                     log.info("[Communication] Add a new processing server : " + mapMessage["name"])
 
-                    ProcessingServer processingServer = Main.cytomine.getProcessingServer(mapMessage["processingServerId"] as Long)
+                    ProcessingServer processingServer = ProcessingServer.fetch(mapMessage["processingServerId"] as Long)
 
                     // Launch the processingServerThread associated to the upon processingServer
                     Runnable processingServerThread = new ProcessingServerThread(channel, mapMessage, processingServer)

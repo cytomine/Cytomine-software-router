@@ -40,12 +40,16 @@ class ImagePullerThread implements Runnable {
             Main.pendingPullingTable.add(imageName)
         }
 
-        def process = (pullingCommand as String).execute()
+        def process = new ProcessBuilder((pullingCommand as String).split(" ") as List)
+                .directory(new File(Main.configFile.cytomine.software.path.softwareImages))
+                .redirectErrorStream(true)
+                .start()
         process.waitFor()
         if (process.exitValue() == 0) {
             log.info("The image [${imageName}] has successfully been pulled !")
         } else {
             log.info("The image [${imageName}] has not been pulled !")
+            log.error(process.text)
         }
 
         def movingProcess = ("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}").execute()

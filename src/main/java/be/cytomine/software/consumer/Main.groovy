@@ -18,14 +18,13 @@ package be.cytomine.software.consumer
 
 import be.cytomine.client.Cytomine
 import be.cytomine.client.CytomineException
-import be.cytomine.client.collections.ProcessingServerCollection
+import be.cytomine.client.collections.Collection
 import be.cytomine.client.collections.SoftwareCollection
-import be.cytomine.client.collections.SoftwareUserRepositoryCollection
+import be.cytomine.client.models.ProcessingServer
 import be.cytomine.client.models.Software
 import be.cytomine.client.models.SoftwareUserRepository
 import be.cytomine.software.consumer.threads.CommunicationThread
 import be.cytomine.software.consumer.threads.ProcessingServerThread
-import be.cytomine.software.repository.AbstractRepositoryManager
 import be.cytomine.software.repository.SoftwareManager
 import be.cytomine.software.repository.threads.RepositoryManagerThread
 import com.rabbitmq.client.Channel
@@ -67,7 +66,8 @@ class Main {
         if (!imagesDirectory.exists()) imagesDirectory.mkdirs()
 
         // Cytomine instance
-        cytomine = new Cytomine(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
+        Cytomine.connection(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
+        cytomine = Cytomine.getInstance()
 
         boolean success = false
 
@@ -106,7 +106,8 @@ class Main {
     static RepositoryManagerThread launchRepositoryManagerThread() {
         def repositoryManagers = []
 
-        SoftwareUserRepositoryCollection softwareUserRepositories = cytomine.getSoftwareUserRepositories()
+        Collection<SoftwareUserRepository> softwareUserRepositories = Collection.fetch(SoftwareUserRepository.class);
+        log.info("${softwareUserRepositories.size()} softwareUserRepositories found")
         for (int i = 0; i < softwareUserRepositories.size(); i++) {
             SoftwareUserRepository currentSoftwareUserRepository = softwareUserRepositories.get(i)
 
@@ -132,7 +133,7 @@ class Main {
                         repositoryManagerExist = true
 
                         // Populate the software table with existing Cytomine software
-                        SoftwareCollection softwareCollection = cytomine.getSoftwaresBySoftwareUserRepository(currentSoftwareUserRepository.getId())
+                        SoftwareCollection softwareCollection = SoftwareCollection.fetchBySoftwareUserRepository(currentSoftwareUserRepository)
                         for (int j = 0; j < softwareCollection.size(); j++) {
                             Software currentSoftware = softwareCollection.get(j)
                             def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftwareUserRepository.getStr("name").trim().toLowerCase()
@@ -148,7 +149,7 @@ class Main {
                 // If the software manager doesn't exist, add it
                 if (!repositoryManagerExist) {
                     // Populate the software table with existing Cytomine software
-                    SoftwareCollection softwareCollection = cytomine.getSoftwaresBySoftwareUserRepository(currentSoftwareUserRepository.getId())
+                    SoftwareCollection softwareCollection = SoftwareCollection.fetchBySoftwareUserRepository(currentSoftwareUserRepository)
                     for (int j = 0; j < softwareCollection.size(); j++) {
                         Software currentSoftware = softwareCollection.get(j)
                         def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftware.getStr("name").trim().toLowerCase()
@@ -190,7 +191,7 @@ class Main {
     static void launchProcessingServerQueues() {
         JsonSlurper jsonSlurper = new JsonSlurper()
 
-        ProcessingServerCollection processingServerCollection = cytomine.getProcessingServerCollection()
+        Collection<ProcessingServer> processingServerCollection = Collection.fetch(ProcessingServer.class);
         for (int i = 0; i < processingServerCollection.size(); i++) {
             def queue = jsonSlurper.parseText(processingServerCollection.get(i).getStr("amqpQueue"))
 

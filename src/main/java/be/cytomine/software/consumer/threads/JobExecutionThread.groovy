@@ -1,6 +1,7 @@
 package be.cytomine.software.consumer.threads
 
 import be.cytomine.client.Cytomine
+import be.cytomine.client.models.AttachedFile
 
 /*
  * Copyright (c) 2009-2018. Authors: see NOTICE file.
@@ -71,8 +72,7 @@ class JobExecutionThread implements Runnable {
 
                 if (logFile.exists()) {
                     // Upload the log file as an attachedFile to the Cytomine-core
-                    Main.cytomine.uploadAttachedFile(filePath as String, "be.cytomine.processing.Job", cytomineJobId
-                            as Long)
+                    new AttachedFile("be.cytomine.processing.Job", cytomineJobId as Long, filePath as String).save()
 
                     // Remove the log file
                     log.info("${logPrefix()} Logs attached to the job and deleted from the disk")

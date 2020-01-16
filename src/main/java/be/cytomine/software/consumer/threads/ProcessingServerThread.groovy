@@ -182,7 +182,7 @@ class ProcessingServerThread implements Runnable {
 
                         break
                     case "updateProcessingServer":
-                        ProcessingServer processingServer = Main.cytomine.getProcessingServer(mapMessage["processingServerId"] as Long)
+                        ProcessingServer processingServer = ProcessingServer.fetch(mapMessage["processingServerId"] as Long)
                         updateProcessingServer(processingServer)
 
                         break

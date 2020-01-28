@@ -1,0 +1,50 @@
+sudo: required
+
+dist: trusty
+
+services:
+  - docker
+
+language: java
+
+jdk:
+  - oraclejdk8
+
+cache:
+  directories:
+    - "$HOME/.cache"
+
+env:
+  global:
+    - DOCKER_USERNAME=cytomineulg
+    - secure: "TSNuL+4cC8gkfsjZQusZMq5CnIqhGAo5mF/kF8VcAx7KaHVM4EEzpBrU7E7IrZzz812Jmr8d9dt3Z+DKbxw3gxnxdRRqrraGxz+68IpSidGGGEHWJvifkKytQt1rpMDcGy5WIttd291TXeZRZ8Bv02kXd1Iq8ydMki6NnNyK3/8hCGJJSZQqBsQioZOqcZ0vwAkuQKbSqj9+Ym1upoMNjM02e4OH18H0pL16MZfEiSSI7E5TAEnz4JCYydeIZw1wI5rFtEq6wZcHnZbzRmpGq2T0EI9J95kEF3kLadl5iV0LcePy8aIYjKT9Br0M0g2MVNmVzjN9GjfNdm6Fc4RLvO9T/OgokLywvcBN35d7eOdWSZeDriwVzaxx8nmFXjK8Tmr9+rQUKbr/H91mIbFqBrUC50SMukFLr1z5MLROGwTOOK7lsKBZTLqDe2ueoXCHPuFOC/fvu7TjoLPxt9T0RtXrpn5lftTupqwCMvFoyEQv8fullTGdpwN7xwYz9Z8Tn+sxHxSNjCj9GhzfQk+9iXnXdc7yiy7N8UaFcjbPW1i+INTpfpCdIuTw3XXa2S8Leadujb7riQUg5qJ+sg00m6svoZrGiSPQC3k8W804KZ6z1IiIoavNJ/KfRYGddiImFlTcGJr2IxwKzvy2aPcJc72Vy73FpG+dhFvH2cVT2Tg="
+
+script: true
+
+after_success:
+  - source continuous_integration/deploy.sh
+
+deploy:
+  - provider: script
+    script: >
+      echo $VERSION &&
+      docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" &&
+      docker push cytomineuliege/software_router:v$VERSION &&
+      docker push cytomineuliege/software_router:latest &&
+      echo "Done."
+    skip_cleanup: true
+    on:
+      condition: $DEPLOY = true
+  - provider: releases
+    api_key:
+      secure: TYUj9FCnXwHKBeDyOQoDQZ66floHMoOpvLAM9CuWeuxpD7UvaLtTOfwD0EribXu6LEaQzMLbQN0uydPjQqWXsHWxQkWtNXF3O2+7Zf9vTGXKnxeY+l4ic6YTtcOLvyMJkkwbnmVc/oNRIKj+iIT1LUIHWjk1SZlzOygqBcs0y5wE4Iou39KEd7pl190+jEWBwWdnrNB3tjpWQlP8t5FflKXATNV3uaI8jOGcnMTAtCT1lhldHKmH2KK9TDT1O6R8oBUQwtbvH3cQ6El50x+aizl5exfBR8fdHUtYpoxemG+bsdXysXKeFMvSL1nfM5g6uubXKyAJiibdqcfkuwKieb4CjCFUewsrSc/I/eQv+vc7r/oezraGkVoFDCMRWwuCQK8lwYmnBd7PE9VLLfMoMNqBAqCm2X1NF7d8w6lDQf+29dzp43RXmgl2A1Xpsi+5QHvcwcn9ELqkInH/DPDDA7N7ivgfPRHegCa1fUZACVHqmFoe5333bx3+QwWmvGEmltNBQ6pJTRbIXllyagiV7d+Rhb9GwWUWkGJgI6zC8MPsSQaYuhuZ3itQby8Ak3zOs5oMcV+PT4Uc8giAcC+uGaU0hdUczTAQKf7ZDHQgJwB37lRwNyPiswi2ye1e1lNZ9QsuQ6PEHdPKzopbQ2MI423gwGJ2mAod0528E3+zjv4=
+    file_glob: true
+    file: target/*
+    skip_cleanup: true
+    on:
+      condition: $DEPLOY = true
+
+notifications:
+  email: false
+  slack:
+    secure: TrdyGx56LOXEzrMxZgMhnYwpLQjIX3fL40YYujq40W66Rcis6nm2SP4i0By3fOSwwKcRwP8HXvs219sZddL3KJSZ0ormMvLHVjo9NNEbUAHqWVUBnaNJjF6ANmRFpuIKkVRTu2LQHaJhjMFyrKg8VVRAxNR1keaOsVeb4/U6gLF9LqfMciz56TtoDzfbMfB0V7l+RtUfRpeKGjDqp+lAEIzueSRItK49hP4gACGxJEMACIG+z1PZNLtVTnV6DokqnVmhUBIo9+ikLmU8g48Ark6hmj0JC5zZHK+LwZUhlMeJmPsJMydJ0ZPiOzcdPhQoLZC5looGFYPru2Igu3GTIM/hoTCDIYUCYRStr0vRF4niEEWMXKp9NJUQHkK0RwPCsuc0iwl1Jaeh9+qSEUeEW3tYyRgNwBPI4YK/XFt1/oDHufi8xU50xVTysSOxVJWbZ29OVdJ4LtWrF5rdKiFfl54sAqEnVREp8QcvRFXLMwL89cW5omi4xqmlojLm1pS/6DthlrED7dMz8qQi43shOPQbVqA+TRRUXl7jPo4DNTbI/8KfJGXg76scytZB4qUx4t6j2C9YxllHEZf7nlNyvHQzTLrcNOB6kxYFOibdrWIm1TycpbIBkb3l/1ZP0MgVFLpEu89eYcCpk29g6QkdyMU6Pb69avq4c9HUk0WhGME=

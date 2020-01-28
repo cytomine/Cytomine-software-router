@@ -1,5 +1,5 @@
 // RabbitMQ Cytomine user (must be super admin)
-cytomine.core.url = "http://localhost-core:8080"
+cytomine.core.url = "http://localhost-core"
 cytomine.core.publicKey = "VWX"
 cytomine.core.privateKey = "STU"
 

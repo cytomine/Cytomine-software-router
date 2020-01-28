@@ -1,9 +1,5 @@
 package be.cytomine.software.consumer.threads
 
-import be.cytomine.client.Cytomine
-import be.cytomine.client.models.AttachedFile
-import be.cytomine.client.models.Job
-
 /*
  * Copyright (c) 2009-2018. Authors: see NOTICE file.
  *
@@ -19,6 +15,10 @@ import be.cytomine.client.models.Job
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import be.cytomine.client.Cytomine
+import be.cytomine.client.models.AttachedFile
+import be.cytomine.client.models.Job
 
 import be.cytomine.software.consumer.Main
 import be.cytomine.software.processingmethod.AbstractProcessingMethod
@@ -64,11 +64,19 @@ class JobExecutionThread implements Runnable {
                 sleep((refreshRate as Long) * 1000)
             }
 
+            try {
+                Job job = Main.cytomine.getJob(cytomineJobId)
+                if (job.getInt('status') == Cytomine.JobStatus.INQUEUE) {
+                    Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0)
+                }
+            }
+            catch (Exception ignored) {}
+
             // Retrieve the slurm job log
             if (processingMethod.retrieveLogs(serverJobId, cytomineJobId, workingDirectory)) {
                 log.info("${logPrefix()} Logs retrieved successfully !")
 
-                def filePath = "${Main.configFile.cytomine.software.path.jobs}/${cytomineJobId}.out"
+                def filePath = "${Main.configFile.cytomine.software.path.jobs}/log.out"
                 def logFile = new File(filePath)
 
                 if (logFile.exists()) {

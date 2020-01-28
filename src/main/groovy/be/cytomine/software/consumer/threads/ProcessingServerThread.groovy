@@ -98,13 +98,17 @@ class ProcessingServerThread implements Runnable {
 
                         def imageName = Utils.getImageNameFromCommand(pullingCommand)
 
-                        Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
+                        try {
+                            Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
+                        } catch (Exception e) {}
                         synchronized (Main.pendingPullingTable) {
                             def start = System.currentTimeSeconds()
                             while (Main.pendingPullingTable.contains(imageName)) {
                                 def status = "The image [${imageName}] is currently being pulled ! Wait..."
                                 log.warn("${logPrefix} ${status}")
-                                Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, status)
+                                try {
+                                    Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, status)
+                                } catch (Exception e) {}
 
                                 if (System.currentTimeSeconds() - start > 1800) {
                                     status = "A problem occurred during the pulling process !"

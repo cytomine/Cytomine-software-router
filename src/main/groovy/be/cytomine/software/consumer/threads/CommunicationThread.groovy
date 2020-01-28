@@ -107,6 +107,11 @@ class CommunicationThread implements Runnable {
                     repositoryManagerThread.refreshAll()
 
                     break
+                case "refreshRepository":
+                    log.info("[Communication] Refresh software user repository: ${mapMessage["username"]}")
+                    repositoryManagerThread.refresh(mapMessage["username"])
+
+                    break
                 case "refreshRepositories":
                     log.info("[Communication] Refresh all software user repositories")
 

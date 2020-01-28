@@ -22,6 +22,7 @@ import be.cytomine.client.models.ProcessingServer
 import be.cytomine.software.communication.SSH
 import be.cytomine.software.consumer.Main
 import be.cytomine.software.processingmethod.AbstractProcessingMethod
+import be.cytomine.software.util.Utils
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.QueueingConsumer
 import groovy.json.JsonSlurper
@@ -95,8 +96,7 @@ class ProcessingServerThread implements Runnable {
                         log.info("${logPrefix} Try to find image... ")
                         def pullingCommand = mapMessage["pullingCommand"] as String
 
-                        def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
-                        def imageName = temp.substring(0, temp.indexOf(" "))
+                        def imageName = Utils.getImageNameFromCommand(pullingCommand)
 
                         Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
                         synchronized (Main.pendingPullingTable) {

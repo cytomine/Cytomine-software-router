@@ -17,6 +17,7 @@ package be.cytomine.software.repository.threads
  */
 
 import be.cytomine.software.consumer.Main
+import be.cytomine.software.util.Utils
 import groovy.util.logging.Log4j
 
 @Log4j
@@ -26,8 +27,7 @@ class ImagePullerThread implements Runnable {
 
     @Override
     void run() {
-        def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
-        def imageName = temp.substring(0, temp.indexOf(" "))
+        def imageName = Utils.getImageNameFromCommand(pullingCommand)
 
         log.info("Pulling thread is running for image ${imageName}")
 

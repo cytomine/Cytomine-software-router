@@ -1,7 +1,7 @@
 package be.cytomine.software.consumer.threads
 
 /*
- * Copyright (c) 2009-2018. Authors: see NOTICE file.
+ * Copyright (c) 2009-2020. Authors: see NOTICE file.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@ package be.cytomine.software.consumer.threads
  */
 
 import be.cytomine.client.models.ProcessingServer
-import be.cytomine.software.consumer.Main
-import be.cytomine.software.repository.AbstractRepositoryManager
 import be.cytomine.software.repository.SoftwareManager
 import be.cytomine.software.repository.threads.RepositoryManagerThread
 
@@ -63,7 +61,7 @@ class CommunicationThread implements Runnable {
                 case "addProcessingServer":
                     log.info("[Communication] Add a new processing server : " + mapMessage["name"])
 
-                    ProcessingServer processingServer = ProcessingServer.fetch(mapMessage["processingServerId"] as Long)
+                    ProcessingServer processingServer = new ProcessingServer().fetch(mapMessage["processingServerId"] as Long)
 
                     // Launch the processingServerThread associated to the upon processingServer
                     Runnable processingServerThread = new ProcessingServerThread(channel, mapMessage, processingServer)

@@ -1,7 +1,7 @@
 package be.cytomine.software.consumer.threads
 
 /*
- * Copyright (c) 2009-2018. Authors: see NOTICE file.
+ * Copyright (c) 2009-2020. Authors: see NOTICE file.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package be.cytomine.software.consumer.threads
  */
 
 import be.cytomine.client.Cytomine
+import be.cytomine.client.models.Job
 import be.cytomine.client.models.ProcessingServer
 import be.cytomine.software.communication.SSH
 import be.cytomine.software.consumer.Main
@@ -93,20 +94,21 @@ class ProcessingServerThread implements Runnable {
 
                         log.info("${logPrefix} Try to find image... ")
                         def pullingCommand = mapMessage["pullingCommand"] as String
+
                         def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
                         def imageName = temp.substring(0, temp.indexOf(" "))
 
-                        Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
+                        Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
                         synchronized (Main.pendingPullingTable) {
                             def start = System.currentTimeSeconds()
                             while (Main.pendingPullingTable.contains(imageName)) {
                                 def status = "The image [${imageName}] is currently being pulled ! Wait..."
                                 log.warn("${logPrefix} ${status}")
-                                Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.WAIT, 0, status)
+                                Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, status)
 
                                 if (System.currentTimeSeconds() - start > 1800) {
                                     status = "A problem occurred during the pulling process !"
-                                    Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.FAILED, 0, status)
+                                    Main.cytomine.changeStatus(jobId, Job.JobStatus.FAILED, 0, status)
                                     return
                                 }
 
@@ -155,13 +157,13 @@ class ProcessingServerThread implements Runnable {
                             synchronized (runningJobs) {
                                 runningJobs.put(jobId, jobExecutionThread)
                             }
-                            Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.INQUEUE, 0)
+                            Main.cytomine.changeStatus(jobId, Job.JobStatus.INQUEUE, 0)
                             ExecutorService executorService = Executors.newSingleThreadExecutor()
                             executorService.execute(jobExecutionThread)
                         } else {
                             def status = "A problem occurred during the pulling process !"
                             log.error("${logPrefix} ${status}")
-                            Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.FAILED, 0, status)
+                            Main.cytomine.changeStatus(jobId, Job.JobStatus.FAILED, 0, status)
                         }
 
                         break
@@ -176,7 +178,7 @@ class ProcessingServerThread implements Runnable {
                                 runningJobs.remove(jobId)
                             }
                             else {
-                                Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.KILLED, 0)
+                                Main.cytomine.changeStatus(jobId, Job.JobStatus.KILLED, 0)
                             }
                         }
 

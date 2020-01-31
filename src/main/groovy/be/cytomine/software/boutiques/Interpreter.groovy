@@ -1,9 +1,7 @@
 package be.cytomine.software.boutiques
 
-import be.cytomine.client.collections.Collection
-
 /*
- * Copyright (c) 2009-2018. Authors: see NOTICE file.
+ * Copyright (c) 2009-2020. Authors: see NOTICE file.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +16,7 @@ import be.cytomine.client.collections.Collection
  * limitations under the License.
  */
 
+import be.cytomine.client.collections.Collection
 import be.cytomine.client.models.ProcessingServer
 import be.cytomine.software.exceptions.BoutiquesException
 import groovy.json.JsonSlurper

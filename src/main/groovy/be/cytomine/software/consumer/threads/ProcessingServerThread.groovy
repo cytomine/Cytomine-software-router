@@ -16,7 +16,6 @@ package be.cytomine.software.consumer.threads
  * limitations under the License.
  */
 
-import be.cytomine.client.Cytomine
 import be.cytomine.client.models.Job
 import be.cytomine.client.models.ProcessingServer
 import be.cytomine.software.communication.SSH

@@ -84,6 +84,8 @@ abstract class AbstractSoftwareManager {
                 pullingCommand as String)
 
 
+        if(this instanceof GitHubSoftwareManager) resultSoftware.set("sourcePath", this.getSourcePath())
+
         if(softwareId == null) {
             resultSoftware = resultSoftware.save()
         } else {
@@ -181,5 +183,7 @@ abstract class AbstractSoftwareManager {
 
         return resultSoftware
     }
+
+    abstract protected String getSourcePath()
 
 }

@@ -67,4 +67,8 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
     protected void cleanFiles() {
         //cleanFiles(source)
     }
+
+    protected String getSourcePath() {
+        return null
+    }
 }

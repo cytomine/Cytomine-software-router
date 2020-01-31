@@ -52,4 +52,8 @@ class GitHubSoftwareManager extends AbstractSoftwareManager {
     protected void cleanFiles() {
         cleanFiles(descriptor)
     }
+
+    protected String getSourcePath() {
+        return "https://github.com/${gitHubManager.username}/${ghRepositoryName}/archive/${release}.zip"
+    }
 }

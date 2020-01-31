@@ -25,7 +25,8 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
 
     File source
 
-    SingleSoftwareManager(String release, File source) throws ClassNotFoundException {
+    SingleSoftwareManager(Long softwareId, String release, File source) throws ClassNotFoundException {
+        this.softwareId = softwareId
         this.release = release
         if(source.exists()){
 

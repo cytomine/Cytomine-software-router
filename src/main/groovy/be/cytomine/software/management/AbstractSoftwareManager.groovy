@@ -27,6 +27,7 @@ abstract class AbstractSoftwareManager {
 
     String release
     Long idSoftwareUserRepository
+    Long softwareId
 
 
     abstract protected File retrieveDescriptor()
@@ -47,8 +48,7 @@ abstract class AbstractSoftwareManager {
 
         cleanFiles()
 
-        return addSoftwareToCytomine(release as String, software, command, arguments, pullingCommand,
-                idSoftwareUserRepository)
+        return addSoftwareToCytomine(software, command, arguments, pullingCommand)
     }
 
     abstract protected void cleanFiles();
@@ -71,17 +71,26 @@ abstract class AbstractSoftwareManager {
      * @return the newly added piece of software
      * @throws CytomineException : exceptions related to the Cytomine java client
      */
-    private Software addSoftwareToCytomine(def version, def software, def command, def arguments, def pullingCommand,
-                                      def idSoftwareUserRepository) throws CytomineException {
+    private Software addSoftwareToCytomine(def software, def command, def arguments, def pullingCommand) throws CytomineException {
         // Add the piece of software
+        log.info("Add the piece of software")
         def resultSoftware = new Software(
                 software.name as String,
                 "",
                 command as String,
-                version as String,
+                release,
                 idSoftwareUserRepository,
                 software.processingServerId as Long,
-                pullingCommand as String).save();
+                pullingCommand as String)
+
+
+        if(softwareId == null) {
+            resultSoftware = resultSoftware.save()
+        } else {
+            //When we only had a software with the sourcePath, we finish its installation into the DB with an update
+            resultSoftware.set("id", softwareId)
+            resultSoftware = resultSoftware.update()
+        }
 
         if (software.description?.trim()) {
             new Description("Software",resultSoftware.getId(), software.description as String).save()

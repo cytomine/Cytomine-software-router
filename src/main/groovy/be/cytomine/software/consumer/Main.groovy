@@ -1,7 +1,7 @@
 package be.cytomine.software.consumer
 
 /*
- * Copyright (c) 2009-2018. Authors: see NOTICE file.
+ * Copyright (c) 2009-2020. Authors: see NOTICE file.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,8 @@ class Main {
         // Create the directory for software data
         def dataDirectory = new File((String) configFile.cytomine.software.path.softwareSources)
         if (!dataDirectory.exists()) dataDirectory.mkdirs()
+        def tmpDataDirectory = new File((String) configFile.cytomine.software.path.softwareSources+"/tmp")
+        if (!tmpDataDirectory.exists()) tmpDataDirectory.mkdirs()
 
         // Create the directory for images
         def imagesDirectory = new File((String) configFile.cytomine.software.path.softwareImages)

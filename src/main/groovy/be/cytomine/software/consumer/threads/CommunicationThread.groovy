@@ -17,7 +17,11 @@ package be.cytomine.software.consumer.threads
  */
 
 import be.cytomine.client.models.ProcessingServer
+import be.cytomine.client.models.Software
+import be.cytomine.software.consumer.Main
+import be.cytomine.software.management.SingleSoftwareManager
 import be.cytomine.software.repository.SoftwareManager
+import be.cytomine.software.repository.threads.ImagePullerThread
 import be.cytomine.software.repository.threads.RepositoryManagerThread
 
 import com.rabbitmq.client.Channel
@@ -25,6 +29,8 @@ import com.rabbitmq.client.QueueingConsumer
 import groovy.json.JsonSlurper
 import groovy.util.logging.Log4j
 
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -116,6 +122,34 @@ class CommunicationThread implements Runnable {
                     log.info("[Communication] Refresh all software user repositories")
 
                     repositoryManagerThread.refreshAll()
+                    break
+                case "addSoftware":
+                    log.info("[Communication] Add a new software")
+                    log.info("============================================")
+                    log.info("software_id          : ${mapMessage["SoftwareId"]}")
+                    log.info("============================================")
+
+                    Software software = new Software().fetch(mapMessage["SoftwareId"] as Long)
+
+                    String downloadedPath = (Main.configFile.cytomine.software.path.softwareSources as String)+"/tmp/"+software.getId()+".zip"
+                    String sourcePath = (Main.configFile.cytomine.software.path.softwareSources as String)+"/"+software.getId()+".zip"
+                    software.download(downloadedPath)
+
+                    if(!Files.probeContentType(Paths.get(downloadedPath)).contains("application/zip")){
+                        log.error "source file is not a zip file. Skipped"
+                        continue
+                    }
+                    def movingProcess = ("mv ${downloadedPath} ${sourcePath}").execute()
+                    movingProcess.waitFor()
+
+                    String version = software.get("softwareVersion")
+                    def softwareManager = new SingleSoftwareManager(mapMessage["SoftwareId"] as Long, version, new File(sourcePath))
+                    def result = softwareManager.installSoftware()
+
+                    def imagePullerThread = new ImagePullerThread(pullingCommand: result.getStr("pullingCommand") as String)
+                    ExecutorService executorService = Executors.newSingleThreadExecutor()
+                    executorService.execute(imagePullerThread)
+
                     break
             }
         }

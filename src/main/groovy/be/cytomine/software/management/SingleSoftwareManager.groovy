@@ -58,7 +58,21 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
     protected String generateSingularityBuildingCommand(Interpreter interpreter){
         def imageName = interpreter.getImageName() + "-" + release as String
 
-        return 'singularity build ' + imageName + '.simg docker-archive:'+source+"/image.tar"
+        File dockerOrigin
+
+        if(Main.configFile.cytomine.software.allowDockerfileCompilation as Boolean) {
+            source.traverse(type: groovy.io.FileType.FILES) {
+                if(it.name == "Dockerfile") dockerOrigin = it
+            }
+            return 'docker build -t '+interpreter.getImageName() + ':' + release+' '+dockerOrigin.parentFile.absolutePath+' && singularity pull --name ' + imageName + '.simg docker-daemon://' +
+                    interpreter.getImageName() + ':' + release as String
+        }
+
+        source.traverse(type: groovy.io.FileType.FILES) {
+            if(it.name == "image.tar") dockerOrigin = it
+        }
+
+        return 'singularity build ' + imageName + '.simg docker-archive:'+dockerOrigin.absolutePath
     }
 
     protected void checkDescriptor(Interpreter interpreter) {

@@ -82,7 +82,7 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
     }
 
     void cleanFiles() {
-        cleanFiles(origin,sources)
+        cleanFiles(origin)
     }
 
     protected String getSourcePath() {

@@ -17,6 +17,7 @@ package be.cytomine.software.management
  */
 
 import be.cytomine.software.boutiques.Interpreter
+import be.cytomine.software.exceptions.CytomineException
 import be.cytomine.software.repository.GitHubManager
 import groovy.util.logging.Log4j
 
@@ -47,6 +48,10 @@ class GitHubSoftwareManager extends AbstractSoftwareManager {
 
         return 'singularity pull --name ' + imageName + '.simg docker://' +
                 pullingInformation['image'] + ':' + release as String
+    }
+
+    protected void checkDescriptor(Interpreter interpreter) {
+        if(interpreter.parseSoftware().name != ghRepositoryName) throw new CytomineException("Software name must be equals to repository name")
     }
 
     protected void cleanFiles() {

@@ -37,6 +37,7 @@ abstract class AbstractSoftwareManager {
         def descriptor = this.retrieveDescriptor()
 
         Interpreter interpreter = new Interpreter(descriptor.path)
+        checkDescriptor(interpreter)
         def pullingCommand = generateSingularityBuildingCommand(interpreter)
         def software = interpreter.parseSoftware()
 
@@ -51,6 +52,7 @@ abstract class AbstractSoftwareManager {
         return addSoftwareToCytomine(software, command, arguments, pullingCommand)
     }
 
+    abstract protected void checkDescriptor(Interpreter interpreter);
     abstract protected void cleanFiles();
 
     protected void cleanFiles(File... files){

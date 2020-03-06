@@ -64,6 +64,10 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
         return 'singularity build ' + imageName + '.simg docker-archive:'+source+"/image.tar"
     }
 
+    protected void checkDescriptor(Interpreter interpreter) {
+
+    }
+
     protected void cleanFiles() {
         //cleanFiles(source)
     }

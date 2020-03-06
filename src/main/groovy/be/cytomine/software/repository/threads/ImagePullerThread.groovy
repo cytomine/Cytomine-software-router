@@ -48,8 +48,7 @@ class ImagePullerThread implements Runnable {
             log.error(process.text)
         }
 
-        def movingProcess = ("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}").execute()
-        movingProcess.waitFor()
+        Utils.executeProcess("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}", ".")
 
         synchronized (Main.pendingPullingTable) {
             Main.pendingPullingTable.remove(imageName)

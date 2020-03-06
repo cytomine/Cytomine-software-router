@@ -124,13 +124,11 @@ class ProcessingServerThread implements Runnable {
                         if (!imageExists) {
                             log.info("${logPrefix} Image not found locally ")
                             log.info("${logPrefix} Try pulling image... ")
-                            def process = pullingCommand.execute()
-                            process.waitFor()
+                            def process = Utils.executeProcess(pullingCommand, Main.configFile.cytomine.software.path.softwareImages)
                             pullingResult = process.exitValue()
 
                             if (pullingResult == 0) {
-                                def movingProcess = ("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}").execute()
-                                movingProcess.waitFor()
+                                Utils.executeProcess("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}", ".")
                             }
                         }
 

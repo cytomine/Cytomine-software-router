@@ -17,6 +17,7 @@ package be.cytomine.software.management
  */
 import be.cytomine.software.boutiques.Interpreter
 import be.cytomine.software.consumer.Main
+import be.cytomine.software.util.Utils
 import groovy.util.logging.Log4j
 import org.apache.commons.lang.RandomStringUtils
 
@@ -34,11 +35,7 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
                     RandomStringUtils.random(13,  (('A'..'Z') + ('0'..'0')).join().toCharArray()))
             this.source.mkdir()
 
-            def process = new ProcessBuilder("unzip",source.path)
-                    .directory(this.source)
-                    .redirectErrorStream(true)
-                    .start()
-            process.waitFor()
+            def process = Utils.executeProcess("unzip "+source.path, this.source)
             if (process.exitValue() == 0) {
                 log.info("The source code has successfully been unzipped !")
             } else {

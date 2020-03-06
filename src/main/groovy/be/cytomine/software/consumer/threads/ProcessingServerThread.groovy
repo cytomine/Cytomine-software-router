@@ -101,23 +101,21 @@ class ProcessingServerThread implements Runnable {
                         try {
                             Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
                         } catch (Exception e) {}
-                        synchronized (Main.pendingPullingTable) {
-                            def start = System.currentTimeSeconds()
-                            while (Main.pendingPullingTable.contains(imageName)) {
-                                def status = "The image [${imageName}] is currently being pulled ! Wait..."
-                                log.warn("${logPrefix} ${status}")
-                                try {
-                                    Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, status)
-                                } catch (Exception e) {}
+                        def start = System.currentTimeSeconds()
+                        while (Main.pendingPullingTable.contains(imageName)) {
+                            def status = "The image [${imageName}] is currently being pulled ! Wait..."
+                            log.warn("${logPrefix} ${status}")
+                            try {
+                                Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, status)
+                            } catch (Exception e) {}
 
-                                if (System.currentTimeSeconds() - start > 1800) {
-                                    status = "A problem occurred during the pulling process !"
-                                    Main.cytomine.changeStatus(jobId, Job.JobStatus.FAILED, 0, status)
-                                    return
-                                }
-
-                                sleep(60000)
+                            if (System.currentTimeSeconds() - start > 1800) {
+                                status = "A problem occurred during the pulling process !"
+                                Main.cytomine.changeStatus(jobId, Job.JobStatus.FAILED, 0, status)
+                                return
                             }
+
+                            sleep(60000)
                         }
 
                         def imageExists = new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()

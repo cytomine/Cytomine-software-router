@@ -146,7 +146,8 @@ class CommunicationThread implements Runnable {
                     def softwareManager = new SingleSoftwareManager(mapMessage["SoftwareId"] as Long, version, new File(sourcePath))
                     def result = softwareManager.installSoftware()
 
-                    def imagePullerThread = new ImagePullerThread(pullingCommand: result.getStr("pullingCommand") as String)
+                    Closure callback = { softwareManager.cleanFiles() }
+                    def imagePullerThread = new ImagePullerThread(pullingCommand: result.getStr("pullingCommand") as String, callback: callback)
                     ExecutorService executorService = Executors.newSingleThreadExecutor()
                     executorService.execute(imagePullerThread)
 

@@ -54,7 +54,7 @@ class GitHubSoftwareManager extends AbstractSoftwareManager {
         if(interpreter.parseSoftware().name != ghRepositoryName) throw new CytomineException("Software name must be equals to repository name")
     }
 
-    protected void cleanFiles() {
+    void cleanFiles() {
         cleanFiles(descriptor)
     }
 

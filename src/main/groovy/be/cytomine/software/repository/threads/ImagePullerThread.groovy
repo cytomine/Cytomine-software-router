@@ -24,6 +24,7 @@ import groovy.util.logging.Log4j
 class ImagePullerThread implements Runnable {
 
     def pullingCommand
+    Closure callback
 
     @Override
     void run() {
@@ -54,7 +55,7 @@ class ImagePullerThread implements Runnable {
         synchronized (Main.pendingPullingTable) {
             Main.pendingPullingTable.remove(imageName)
         }
-
+        if(callback) callback()
     }
 
 }

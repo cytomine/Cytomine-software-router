@@ -24,18 +24,20 @@ import org.apache.commons.lang.RandomStringUtils
 @Log4j
 class SingleSoftwareManager extends AbstractSoftwareManager {
 
-    File source
+    File origin
+    File sources
 
-    SingleSoftwareManager(Long softwareId, String release, File source) throws ClassNotFoundException {
+    SingleSoftwareManager(Long softwareId, String release, File origin) throws ClassNotFoundException {
         this.softwareId = softwareId
         this.release = release
-        if(source.exists()){
+        this.origin = origin
+        if(origin.exists()){
 
-            this.source = new File(Main.configFile.cytomine.software.path.softwareImages,
+            this.sources = new File(Main.configFile.cytomine.software.path.softwareImages,
                     RandomStringUtils.random(13,  (('A'..'Z') + ('0'..'0')).join().toCharArray()))
-            this.source.mkdir()
+            this.sources.mkdir()
 
-            def process = Utils.executeProcess("unzip "+source.path, this.source)
+            def process = Utils.executeProcess("unzip "+origin.path, this.sources)
             if (process.exitValue() == 0) {
                 log.info("The source code has successfully been unzipped !")
             } else {
@@ -48,7 +50,7 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
     @Override
     protected File retrieveDescriptor() {
         File descriptor
-        source.traverse(type: groovy.io.FileType.FILES) {
+        sources.traverse(type: groovy.io.FileType.FILES) {
             if(it.name == Main.configFile.cytomine.software.descriptorFile) descriptor = it
         }
 
@@ -61,14 +63,14 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
         File dockerOrigin
 
         if(Main.configFile.cytomine.software.allowDockerfileCompilation as Boolean) {
-            source.traverse(type: groovy.io.FileType.FILES) {
+            sources.traverse(type: groovy.io.FileType.FILES) {
                 if(it.name == "Dockerfile") dockerOrigin = it
             }
             return 'docker build -t '+interpreter.getImageName() + ':' + release+' '+dockerOrigin.parentFile.absolutePath+' && singularity pull --name ' + imageName + '.simg docker-daemon://' +
                     interpreter.getImageName() + ':' + release as String
         }
 
-        source.traverse(type: groovy.io.FileType.FILES) {
+        sources.traverse(type: groovy.io.FileType.FILES) {
             if(it.name == "image.tar") dockerOrigin = it
         }
 
@@ -79,8 +81,8 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
 
     }
 
-    protected void cleanFiles() {
-        //cleanFiles(source)
+    void cleanFiles() {
+        cleanFiles(origin,sources)
     }
 
     protected String getSourcePath() {

@@ -47,15 +47,13 @@ abstract class AbstractSoftwareManager {
         def command = interpreter.buildExecutionCommand(imageName + ".simg")
         def arguments = interpreter.parseParameters()
 
-        cleanFiles()
-
         return addSoftwareToCytomine(software, command, arguments, pullingCommand)
     }
 
     abstract protected void checkDescriptor(Interpreter interpreter);
-    abstract protected void cleanFiles();
+    abstract void cleanFiles();
 
-    protected void cleanFiles(File... files){
+    void cleanFiles(File... files){
         files.each {
             if(it.isDirectory()) it.deleteDir()
             else it.delete()

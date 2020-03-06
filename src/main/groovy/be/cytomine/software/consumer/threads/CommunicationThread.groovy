@@ -23,7 +23,7 @@ import be.cytomine.software.management.SingleSoftwareManager
 import be.cytomine.software.repository.SoftwareManager
 import be.cytomine.software.repository.threads.ImagePullerThread
 import be.cytomine.software.repository.threads.RepositoryManagerThread
-
+import be.cytomine.software.util.Utils
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.QueueingConsumer
 import groovy.json.JsonSlurper
@@ -139,8 +139,7 @@ class CommunicationThread implements Runnable {
                         log.error "source file is not a zip file. Skipped"
                         continue
                     }
-                    def movingProcess = ("mv ${downloadedPath} ${sourcePath}").execute()
-                    movingProcess.waitFor()
+                    Utils.executeProcess("mv ${downloadedPath} ${sourcePath}", ".")
 
                     String version = software.get("softwareVersion")
                     def softwareManager = new SingleSoftwareManager(mapMessage["SoftwareId"] as Long, version, new File(sourcePath))

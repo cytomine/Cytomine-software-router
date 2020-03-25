@@ -32,9 +32,18 @@ class GitHubManager extends AbstractRepositoryManager {
         super(username)
     }
 
+    GitHubManager(String username, def opts) {
+        super(username, opts)
+    }
+
     @Override
-    def connectToRepository(String username) {
-        gitHub = GitHub.connectAnonymously()
+    def connectToRepository(String username, def opts) {
+        if (opts.containsKey("token")) {
+            gitHub = GitHub.connect(username, opts.token)
+        } else {
+            gitHub = GitHub.connectAnonymously()
+        }
+
         ghUser = gitHub.getUser(username)
     }
 

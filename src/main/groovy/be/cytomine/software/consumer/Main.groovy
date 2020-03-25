@@ -123,11 +123,16 @@ class Main {
             SoftwareUserRepository currentSoftwareUserRepository = softwareUserRepositories.get(i)
 
             try {
+                def connectOpts = [:]
+                if (currentSoftwareUserRepository.getStr("token") && !currentSoftwareUserRepository.getStr("token").isEmpty()) {
+                    connectOpts << [token: currentSoftwareUserRepository.getStr("token")]
+                }
                 SoftwareManager softwareManager = new SoftwareManager(
                         currentSoftwareUserRepository.getStr("username"),
                         currentSoftwareUserRepository.getStr("dockerUsername"),
                         currentSoftwareUserRepository.getStr("prefix"),
-                        currentSoftwareUserRepository.getId()
+                        currentSoftwareUserRepository.getId(),
+                        connectOpts
                 )
 
                 def repositoryManagerExist = false

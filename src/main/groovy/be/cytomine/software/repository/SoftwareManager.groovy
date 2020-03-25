@@ -40,8 +40,8 @@ class SoftwareManager {
     GitHubManager gitHubManager
     DockerHubManager dockerHubManager
 
-    SoftwareManager(def gitHubUsername, def dockerUsername, def prefix, def idSoftwareUserRepository) throws ClassNotFoundException {
-        gitHubManager = new GitHubManager(gitHubUsername as String)
+    SoftwareManager(def gitHubUsername, def dockerUsername, def prefix, def idSoftwareUserRepository, def connectOpts) throws ClassNotFoundException {
+        gitHubManager = new GitHubManager(gitHubUsername as String, connectOpts)
         dockerHubManager = new DockerHubManager(username: dockerUsername as String)
         prefixes << [(prefix): idSoftwareUserRepository]
         name =  "SoftwareManager $gitHubUsername / $dockerUsername"

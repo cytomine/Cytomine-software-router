@@ -49,6 +49,8 @@ class ImagePullerThread implements Runnable {
             log.error(process.text)
         }
 
+        //TODO handle error (can be a network error)
+
         Utils.executeProcess("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}", ".")
 
         synchronized (Main.pendingPullingTable) {

@@ -17,6 +17,7 @@ package be.cytomine.software.management
  */
 
 import be.cytomine.software.boutiques.Interpreter
+import be.cytomine.software.exceptions.CytomineException
 import be.cytomine.software.repository.GitHubManager
 import groovy.util.logging.Log4j
 
@@ -49,7 +50,15 @@ class GitHubSoftwareManager extends AbstractSoftwareManager {
                 pullingInformation['image'] + ':' + release as String
     }
 
-    protected void cleanFiles() {
+    protected void checkDescriptor(Interpreter interpreter) {
+        //if(interpreter.parseSoftware().name != ghRepositoryName) throw new CytomineException("Software name must be equals to repository name")
+    }
+
+    void cleanFiles() {
         cleanFiles(descriptor)
+    }
+
+    protected String getSourcePath() {
+        return "https://github.com/${gitHubManager.username}/${ghRepositoryName}/archive/${release}.zip"
     }
 }

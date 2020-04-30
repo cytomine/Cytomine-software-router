@@ -66,8 +66,8 @@ class JobExecutionThread implements Runnable {
 
             try {
                 Job job = Main.cytomine.getJob(cytomineJobId)
-                if (job.getInt('status') == Cytomine.JobStatus.INQUEUE) {
-                    Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0)
+                if (job.getInt('status') == Job.JobStatus.INQUEUE.getValue()) {
+                    Main.cytomine.changeStatus(cytomineJobId, Job.JobStatus.FAILED, 0)
                 }
             }
             catch (Exception ignored) {}

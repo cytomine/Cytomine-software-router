@@ -69,6 +69,7 @@ class SoftwareManager {
                         GitHubSoftwareManager softManager = new GitHubSoftwareManager(gitHubManager, (repository as String).trim().toLowerCase(),
                                 tags.first(), startsWithKnownPrefix(repository).value)
                         def result = softManager.installSoftware()
+                        softManager.cleanFiles()
 
                         if (currentSoftware != null) currentSoftware.deprecate()
 

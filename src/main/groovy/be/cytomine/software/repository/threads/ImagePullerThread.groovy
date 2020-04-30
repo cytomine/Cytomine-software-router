@@ -24,6 +24,7 @@ import groovy.util.logging.Log4j
 class ImagePullerThread implements Runnable {
 
     def pullingCommand
+    Closure callback
 
     @Override
     void run() {
@@ -40,11 +41,7 @@ class ImagePullerThread implements Runnable {
             Main.pendingPullingTable.add(imageName)
         }
 
-        def process = new ProcessBuilder((pullingCommand as String).split(" ") as List)
-                .directory(new File(Main.configFile.cytomine.software.path.softwareImages))
-                .redirectErrorStream(true)
-                .start()
-        process.waitFor()
+        def process = Utils.executeProcess((pullingCommand as String), Main.configFile.cytomine.software.path.softwareImages)
         if (process.exitValue() == 0) {
             log.info("The image [${imageName}] has successfully been pulled !")
         } else {
@@ -52,13 +49,14 @@ class ImagePullerThread implements Runnable {
             log.error(process.text)
         }
 
-        def movingProcess = ("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}").execute()
-        movingProcess.waitFor()
+        //TODO handle error (can be a network error)
+
+        Utils.executeProcess("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}", ".")
 
         synchronized (Main.pendingPullingTable) {
             Main.pendingPullingTable.remove(imageName)
         }
-
+        if(callback) callback()
     }
 
 }

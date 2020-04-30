@@ -19,5 +19,7 @@ cytomine.software.descriptorFile = "descriptor.json"
 
 cytomine.software.ssh.maxRetries = 3
 
+cytomine.software.allowDockerfileCompilation = true
+
 // In seconds
 cytomine.software.repositoryManagerRefreshRate = 300

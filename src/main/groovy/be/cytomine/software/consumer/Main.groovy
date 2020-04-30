@@ -61,6 +61,8 @@ class Main {
         // Create the directory for software data
         def dataDirectory = new File((String) configFile.cytomine.software.path.softwareSources)
         if (!dataDirectory.exists()) dataDirectory.mkdirs()
+        def tmpDataDirectory = new File((String) configFile.cytomine.software.path.softwareSources+"/tmp")
+        if (!tmpDataDirectory.exists()) tmpDataDirectory.mkdirs()
 
         // Create the directory for images
         def imagesDirectory = new File((String) configFile.cytomine.software.path.softwareImages)

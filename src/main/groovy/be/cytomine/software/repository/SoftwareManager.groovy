@@ -44,11 +44,15 @@ class SoftwareManager {
         gitHubManager = new GitHubManager(gitHubUsername as String, connectOpts)
         dockerHubManager = new DockerHubManager(username: dockerUsername as String)
         prefixes << [(prefix): idSoftwareUserRepository]
-        name =  "SoftwareManager $gitHubUsername / $dockerUsername"
+        name =  "SoftwareManager ${gitHubUsername}/${dockerUsername}"
+    }
+
+    String toString() {
+        return "$name ${prefixes.keySet()}"
     }
 
     def updateSoftware() {
-        log.info("Refresh repository manager ${name} with prefixes: ${prefixes.keySet()}")
+        log.info("Refresh $this")
         def repositories = dockerHubManager.getRepositories()
 
         repositories.each { repository ->

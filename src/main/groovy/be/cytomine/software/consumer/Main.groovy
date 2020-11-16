@@ -26,6 +26,7 @@ import be.cytomine.client.models.SoftwareUserRepository
 import be.cytomine.client.models.User
 import be.cytomine.software.consumer.threads.CommunicationThread
 import be.cytomine.software.consumer.threads.ProcessingServerThread
+import be.cytomine.software.consumer.threads.SRThreadFactory
 import be.cytomine.software.repository.AbstractRepositoryManager
 import be.cytomine.software.repository.SoftwareManager
 import be.cytomine.software.repository.threads.RepositoryManagerThread
@@ -33,6 +34,7 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
 import groovy.util.logging.Log4j
 import org.apache.log4j.PropertyConfigurator
 
@@ -69,21 +71,24 @@ class Main {
         if (!imagesDirectory.exists()) imagesDirectory.mkdirs()
 
         // Cytomine instance
-        cytomine = new Cytomine(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
+        cytomine = new Cytomine(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String,
+                configFile.cytomine.core.privateKey as String)
 
         ping()
 
-        log.info("Launch repository thread")
+        log.info("Launch repository thread...")
         def repositoryManagementThread = launchRepositoryManagerThread()
 
-        log.info("Create rabbitMQ connection")
+        log.info("Create rabbitMQ connection...")
         createRabbitMQConnection()
 
-        log.info("Launch communication thread")
+        log.info("Launch communication thread...")
         launchCommunicationThread(repositoryManagementThread)
 
-        log.info("Launch processing server threads")
+        log.info("Launch processing server threads...")
         launchProcessingServerQueues()
+
+        log.info("SOFTWARE ROUTER IS READY")
     }
 
     static void ping() {
@@ -134,6 +139,7 @@ class Main {
                         currentSoftwareUserRepository.getId(),
                         connectOpts
                 )
+                log.info("Initializing software manager $softwareManager")
 
                 def repositoryManagerExist = false
                 for (SoftwareManager elem : repositoryManagers) {
@@ -147,6 +153,7 @@ class Main {
                         // Add the new prefix to the prefix list
                         elem.prefixes << [(currentSoftwareUserRepository.getStr("prefix")): currentSoftwareUserRepository.getLong("id")]
                         repositoryManagerExist = true
+                        log.info("-> Appended to existing software manger: $elem")
 
                         // Populate the software table with existing Cytomine software
                         SoftwareCollection softwareCollection = cytomine.getSoftwaresBySoftwareUserRepository(currentSoftwareUserRepository.getId())
@@ -154,12 +161,11 @@ class Main {
                             Software currentSoftware = softwareCollection.get(j)
                             def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftwareUserRepository.getStr("name").trim().toLowerCase()
 
-                            log.info key
-
                             try {
                                 if (currentSoftware && !currentSoftware?.getBool('deprecated')) {
                                     // Add an entry for a specific software
                                     elem.softwareTable.put(key, currentSoftware)
+                                    log.info("$elem manages software $key")
                                 }
                             }
                             catch(Exception ignored) {}
@@ -178,11 +184,11 @@ class Main {
                         Software currentSoftware = softwareCollection.get(j)
                         def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftware.getStr("name").trim().toLowerCase()
 
-                        log.info key
                         try {
                             if (currentSoftware && !currentSoftware?.getBool('deprecated')) {
                                 // Add an entry for a specific software
                                 softwareManager.softwareTable.put(key, currentSoftware)
+                                log.info("$softwareManager manages software $key")
                             }
                         }
                         catch(Exception ignored) {}
@@ -193,15 +199,15 @@ class Main {
                 }
 
             } catch (CytomineException ex) {
-                log.info("Cytomine exception : ${ex.getMessage()}")
+                log.error("Cytomine exception : ${ex.getMessage()}")
             } catch (Exception ex) {
-                log.info("An unknown exception occurred : ${ex.getMessage()}")
+                log.error("An unknown exception occurred : ${ex.getMessage()}")
             }
         }
 
         // Launch the repository manager thread
         def repositoryManagerThread = new RepositoryManagerThread(repositoryManagers: repositoryManagers as ArrayList)
-        def executorService = Executors.newSingleThreadExecutor()
+        def executorService = Executors.newSingleThreadExecutor(new SRThreadFactory("RepositoryManager"))
         executorService.execute(repositoryManagerThread)
 
         return repositoryManagerThread
@@ -214,7 +220,7 @@ class Main {
                 queueName: configFile.cytomine.software.communication.queue as String,
                 exchangeName: configFile.cytomine.software.communication.exchange as String
         )
-        ExecutorService executorService = Executors.newSingleThreadExecutor()
+        ExecutorService executorService = Executors.newSingleThreadExecutor(new SRThreadFactory("Communication"))
         executorService.execute(communicationThread)
     }
 
@@ -230,7 +236,7 @@ class Main {
                     queue,
                     processingServerCollection.get(i)
             )
-            ExecutorService executorService = Executors.newSingleThreadExecutor()
+            ExecutorService executorService = Executors.newSingleThreadExecutor(new SRThreadFactory("ProcessingServer"))
             executorService.execute(processingServerThread)
         }
     }

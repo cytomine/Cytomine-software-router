@@ -54,7 +54,14 @@ class SoftwareManager {
 
     def updateSoftware() {
         log.info("Refresh $this")
-        def repositories = dockerHubManager.getRepositories()
+        def repositories = []
+        try {
+            repositories = dockerHubManager.getRepositories()
+        }
+        catch (Exception e) {
+            log.error("Error while fetching Dockerhub repositories for $this: $e - ${e.getMessage()}")
+        }
+
 
         repositories.each { repository ->
             if (startsWithKnownPrefix(repository as String)) {

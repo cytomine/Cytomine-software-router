@@ -40,8 +40,13 @@ class GitHubManager extends AbstractRepositoryManager {
     def connectToRepository(String username, def opts) {
         if (opts.containsKey("token")) {
             gitHub = GitHub.connect(username, opts.token)
+            log.info("Github $username connected with token")
+        } else if (opts.containsKey("softwareRouterGithubUsername") && opts.containsKey("softwareRouterGithubToken")) {
+            gitHub = GitHub.connect(opts.softwareRouterGithubUsername, opts.softwareRouterGithubToken)
+            log.info("Github $username connected with software router Github credentials")
         } else {
             gitHub = GitHub.connectAnonymously()
+            log.info("Github $username connected anonymously")
         }
 
         ghUser = gitHub.getUser(username)

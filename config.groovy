@@ -21,3 +21,6 @@ cytomine.software.ssh.maxRetries = 3
 
 // In seconds
 cytomine.software.repositoryManagerRefreshRate = 300
+
+cytomine.software.github.user=""
+cytomine.software.github.token=""

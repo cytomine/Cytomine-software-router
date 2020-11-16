@@ -79,6 +79,13 @@ class CommunicationThread implements Runnable {
                     log.info("============================================")
 
                     def connectOpts = [:]
+                    def ghUsername = Main.configFile.cytomine.software.github.username as String
+                    if (ghUsername && !ghUsername.isEmpty())
+                        connectOpts << [softwareRouterGithubUsername: ghUsername]
+                    def ghToken = Main.configFile.cytomine.software.github.token as String
+                    if (ghToken && !ghToken.isEmpty())
+                        connectOpts << [softwareRouterGithubToken: ghToken]
+
                     if (mapMessage["token"] && !(mapMessage["token"] as String).isEmpty()) {
                         connectOpts << [token: mapMessage["token"]]
                     }

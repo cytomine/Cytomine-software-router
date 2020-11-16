@@ -123,12 +123,19 @@ class Main {
     static RepositoryManagerThread launchRepositoryManagerThread() {
         def repositoryManagers = []
 
+        def connectOpts = [:]
+        def ghUsername = configFile.cytomine.software.github.username as String
+        if (ghUsername && !ghUsername.isEmpty())
+            connectOpts << [softwareRouterGithubUsername: ghUsername]
+        def ghToken = configFile.cytomine.software.github.token as String
+        if (ghToken && !ghToken.isEmpty())
+            connectOpts << [softwareRouterGithubToken: ghToken]
+
         SoftwareUserRepositoryCollection softwareUserRepositories = cytomine.getSoftwareUserRepositories()
         for (int i = 0; i < softwareUserRepositories.size(); i++) {
             SoftwareUserRepository currentSoftwareUserRepository = softwareUserRepositories.get(i)
 
             try {
-                def connectOpts = [:]
                 if (currentSoftwareUserRepository.getStr("token") && !currentSoftwareUserRepository.getStr("token").isEmpty()) {
                     connectOpts << [token: currentSoftwareUserRepository.getStr("token")]
                 }

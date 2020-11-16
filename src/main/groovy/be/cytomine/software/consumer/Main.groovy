@@ -159,7 +159,7 @@ class Main {
                         SoftwareCollection softwareCollection = cytomine.getSoftwaresBySoftwareUserRepository(currentSoftwareUserRepository.getId())
                         for (int j = 0; j < softwareCollection.size(); j++) {
                             Software currentSoftware = softwareCollection.get(j)
-                            def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftwareUserRepository.getStr("name").trim().toLowerCase()
+                            def key = currentSoftwareUserRepository.getStr("prefix").trim().toLowerCase() + currentSoftware.getStr("name").trim().toLowerCase()
 
                             try {
                                 if (currentSoftware && !currentSoftware?.getBool('deprecated')) {

@@ -32,7 +32,7 @@ class ImagePullerThread implements Runnable {
         log.info("Pulling thread is running for image ${imageName}")
 
         if (new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()) {
-            log.info("The image [${imageName}] already exists !")
+            log.warn("The image [${imageName}] already exists !")
             return
         }
 
@@ -44,17 +44,20 @@ class ImagePullerThread implements Runnable {
         process.waitFor()
         if (process.exitValue() == 0) {
             log.info("The image [${imageName}] has successfully been pulled !")
-        } else {
-            log.info("The image [${imageName}] has not been pulled !")
-        }
 
-        def movingProcess = ("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}").execute()
-        movingProcess.waitFor()
+            def movingProcess = ("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}").execute()
+            movingProcess.waitFor()
+            if (movingProcess.exitValue() == 0) {
+                log.info("The image [${imageName}] has successfully been moved !")
+            } else {
+                log.error("The image [${imageName}] has not been moved !")
+            }
+        } else {
+            log.error("The image [${imageName}] has not been pulled !")
+        }
 
         synchronized (Main.pendingPullingTable) {
             Main.pendingPullingTable.remove(imageName)
         }
-
     }
-
 }

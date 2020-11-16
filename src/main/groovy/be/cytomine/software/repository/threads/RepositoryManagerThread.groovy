@@ -38,16 +38,20 @@ class RepositoryManagerThread implements Runnable {
             refreshRate = result
         }
 
-        log.info("Refresh rate (seconds) : ${refreshRate}")
+        log.info("Looking for new repositories every ${refreshRate}s")
 
         while (true) {
-            log.info("Amount of repository managers : ${repositoryManagers.size()}")
+            log.info("Periodic refreshing of all repository managers (${repositoryManagers.size()})")
 
-            if (repositoryManagers.size() > 0) {
-                (repositoryManagers.get(index) as SoftwareManager).updateSoftware()
-
-                index = ++index % repositoryManagers.size()
+            repositoryManagers.each {
+                (it as SoftwareManager).updateSoftware()
             }
+
+//            if (repositoryManagers.size() > 0) {
+//                (repositoryManagers.get(index) as SoftwareManager).updateSoftware()
+//
+//                index = ++index % repositoryManagers.size()
+//            }
 
             sleep((refreshRate as Long) * 1000)
         }
@@ -60,7 +64,7 @@ class RepositoryManagerThread implements Runnable {
     }
 
     def refreshAll() {
-        log.info("Refreshing all the repository managers !")
+        log.info("Refreshing all the repository managers (${repositoryManagers.size()}) !")
         repositoryManagers.each { manager -> manager.updateSoftware() }
     }
 

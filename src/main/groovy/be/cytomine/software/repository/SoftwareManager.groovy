@@ -22,6 +22,7 @@ import be.cytomine.client.models.ParameterConstraint
 import be.cytomine.client.models.Software
 import be.cytomine.software.boutiques.Interpreter
 import be.cytomine.software.consumer.Main
+import be.cytomine.software.consumer.threads.SRThreadFactory
 import be.cytomine.software.exceptions.BoutiquesException
 import be.cytomine.software.repository.threads.ImagePullerThread
 import groovy.util.logging.Log4j
@@ -57,63 +58,69 @@ class SoftwareManager {
 
         repositories.each { repository ->
             if (startsWithKnownPrefix(repository as String)) {
-                Software currentSoftware = softwareTable.get((repository as String).trim().toLowerCase()) as Software
-                log.info("Repository to refresh : ${repository} - Last version installed is ${currentSoftware?.get("softwareVersion")}")
+                def logPrefix = "$this $repository |"
+
                 def tags = dockerHubManager.getTags(repository as String)
                 if (tags.isEmpty()) {
-                    log.info "-> No Docker tags: skip software"
+                    log.info "$logPrefix No Docker tags: skip software"
                     return
                 }
 
+                Software currentSoftware = softwareTable.get((repository as String).trim().toLowerCase()) as Software
                 if (currentSoftware != null) {
-                    if (currentSoftware.get("softwareVersion") as String != tags.first() as String) {
-                        log.info("-> Update the software [${repository}] - ${tags.first()}")
+                    logPrefix += " ${currentSoftware.get("fullName")} [ID: ${currentSoftware.getId()}] |"
+                    def newTag = tags.first()
+                    if (currentSoftware.get("softwareVersion") as String != newTag as String) {
+                        log.info("$logPrefix Install new version: $newTag")
+                        logPrefix += " $newTag"
 
                         try {
-                            def result = installSoftware(repository, tags.first())
+                            def result = installSoftware(repository, newTag)
                             Main.cytomine.deprecateSoftware(currentSoftware.getId())
                             softwareTable.put((repository as String).trim().toLowerCase(), result)
 
                             def imagePullerThread = new ImagePullerThread(pullingCommand: result.getStr("pullingCommand") as String)
-                            ExecutorService executorService = Executors.newSingleThreadExecutor()
+                            ExecutorService executorService = Executors.newSingleThreadExecutor(new SRThreadFactory("imagePuller-$repository-$newTag"))
                             executorService.execute(imagePullerThread)
                         } catch (GHFileNotFoundException ex) {
-                            log.info("--> Error during the installation of [${repository}] : ${ex.getMessage()}")
+                            log.info("$logPrefix --> No descriptor: ${ex.getMessage()}")
                         } catch (BoutiquesException ex) {
-                            log.info("--> Boutiques exception : ${ex.getMessage()}")
+                            log.info("$logPrefix --> Invalid Boutiques descriptor: ${ex.getMessage()}")
                         } catch (CytomineException ex) {
-                            log.info("--> Error during the adding of [${repository}] to Cytomine : ${ex.getMessage()}")
+                            log.info("$logPrefix --> Exception with Cytomine : ${ex.toString()} - ${ex.getMessage()}")
                         } catch (Exception ex) {
-                            log.info("--> Unknown exception occurred : ${ex.getMessage()}")
+                            log.info("$logPrefix --> Unknown exception occurred : ${ex.getMessage()}")
                         }
                     }
                     else {
-                        log.info "-> Last version is already installed. Skip."
+                        log.info "$logPrefix $newTag OK."
                     }
                 } else {
-                    log.info("-> Add the software [${repository}] - ${tags.first()}")
+                    def newTag = tags.first()
+                    logPrefix += " New software $repository - $newTag |"
+                    log.info("$logPrefix First installation")
 
                     try {
                         def result = installSoftware(repository, tags.first())
                         softwareTable.put((repository as String).trim().toLowerCase(), result)
 
                         def imagePullerThread = new ImagePullerThread(pullingCommand: result.getStr("pullingCommand") as String)
-                        ExecutorService executorService = Executors.newSingleThreadExecutor()
+                        ExecutorService executorService = Executors.newSingleThreadExecutor(new SRThreadFactory("ImagePuller-$repository-$newTag"))
                         executorService.execute(imagePullerThread)
                     } catch (GHFileNotFoundException ex) {
-                        log.info("--> Error during the installation of [${repository}] : ${ex.getMessage()}")
+                        log.info("$logPrefix --> No descriptor: ${ex.getMessage()}")
                     } catch (BoutiquesException ex) {
-                        log.info("--> Boutiques exception : ${ex.getMessage()}")
+                        log.info("$logPrefix --> Invalid Boutiques descriptor: ${ex.getMessage()}")
                     } catch (CytomineException ex) {
-                        log.info("--> Error during the adding of [${repository}] to Cytomine : ${ex.getMessage()} ${ex.getHttpCode()} ${ex.getMsg()}")
+                        log.info("$logPrefix --> Exception with Cytomine : ${ex.toString()} - ${ex.getMessage()}")
                     } catch (Exception ex) {
-                        log.info("--> Unknown exception occurred : ${ex.printStackTrace()}")
+                        log.info("$logPrefix --> Unknown exception occurred : ${ex.getMessage()}")
                     }
                 }
             }
         }
 
-        log.info "Finished to refresh."
+        log.info "Finished to refresh $this."
     }
 
     private def startsWithKnownPrefix(def repository) {

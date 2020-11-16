@@ -140,7 +140,7 @@ class Main {
         channel = connection.createChannel()
     }
 
-    static RepositoryManagerThread launchRepositoryManagerThread() {
+    static def createRepositoryManagers() {
         def repositoryManagers = []
 
         def connectOpts = [:]
@@ -231,6 +231,12 @@ class Main {
                 log.error("An unknown exception occurred : ${ex.getMessage()}")
             }
         }
+
+        return repositoryManagers
+    }
+
+    static RepositoryManagerThread launchRepositoryManagerThread() {
+        def repositoryManagers = createRepositoryManagers()
 
         // Launch the repository manager thread
         def repositoryManagerThread = new RepositoryManagerThread(repositoryManagers: repositoryManagers as ArrayList)

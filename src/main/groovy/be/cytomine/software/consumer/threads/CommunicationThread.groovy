@@ -18,8 +18,6 @@ package be.cytomine.software.consumer.threads
 
 import be.cytomine.client.models.ProcessingServer
 import be.cytomine.software.consumer.Main
-import be.cytomine.software.repository.AbstractRepositoryManager
-import be.cytomine.software.repository.SoftwareManager
 import be.cytomine.software.repository.threads.RepositoryManagerThread
 
 import com.rabbitmq.client.Channel
@@ -70,51 +68,12 @@ class CommunicationThread implements Runnable {
                     ExecutorService executorService = Executors.newSingleThreadExecutor()
                     executorService.execute(processingServerThread)
                     break
-                case "addSoftwareUserRepository":
-                    log.info("[Communication] Add a new software user repository")
-                    log.info("============================================")
-                    log.info("username          : ${mapMessage["username"]}")
-                    log.info("dockerUsername    : ${mapMessage["dockerUsername"]}")
-                    log.info("prefix            : ${mapMessage["prefix"]}")
-                    log.info("============================================")
+                case "refreshSoftwareUserRepositoryList":
+                    log.info("[Communication] Re-fetch software user repositories, it has changed")
+                    def repositoryManagers = Main.createRepositoryManagers()
 
-                    def connectOpts = [:]
-                    def ghUsername = Main.configFile.cytomine.software.github.username as String
-                    if (ghUsername && !ghUsername.isEmpty())
-                        connectOpts << [softwareRouterGithubUsername: ghUsername]
-                    def ghToken = Main.configFile.cytomine.software.github.token as String
-                    if (ghToken && !ghToken.isEmpty())
-                        connectOpts << [softwareRouterGithubToken: ghToken]
-
-                    if (mapMessage["token"] && !(mapMessage["token"] as String).isEmpty()) {
-                        connectOpts << [token: mapMessage["token"]]
-                    }
-                    def softwareManager = new SoftwareManager(mapMessage["username"], mapMessage["dockerUsername"],
-                            mapMessage["prefix"], mapMessage["id"], connectOpts)
-
-                    def repositoryManagerExist = false
-                    for (SoftwareManager elem : repositoryManagerThread.repositoryManagers) {
-
-                        // Check if the software manager already exists
-                        if (softwareManager.gitHubManager.getClass().getName() == elem.gitHubManager.getClass().getName() &&
-                                softwareManager.gitHubManager.username == elem.gitHubManager.username &&
-                                softwareManager.dockerHubManager.username == elem.dockerHubManager.username) {
-
-                            repositoryManagerExist = true
-
-                            // If the repository manager already exists and doesn't have the prefix yet, add it
-                            if (!elem.prefixes.containsKey(mapMessage["prefix"])) {
-                                elem.prefixes << [(mapMessage["prefix"]): mapMessage["id"]]
-                            }
-                            break
-                        }
-                    }
-
-                    // If the software manager doesn't exist, add it
-                    if (!repositoryManagerExist) {
-                        synchronized (repositoryManagerThread.repositoryManagers) {
-                            repositoryManagerThread.repositoryManagers.add(softwareManager)
-                        }
+                    synchronized (repositoryManagerThread.repositoryManagers) {
+                        repositoryManagerThread.repositoryManagers = repositoryManagers
                     }
 
                     // Refresh all after add

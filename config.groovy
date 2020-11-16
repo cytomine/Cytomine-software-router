@@ -18,9 +18,14 @@ cytomine.software.sshKeysFile = "/data/ssh/id_rsa"
 cytomine.software.descriptorFile = "descriptor.json"
 
 cytomine.software.ssh.maxRetries = 3
+cytomine.core.connectionRetries = 20
 
 // In seconds
-cytomine.software.repositoryManagerRefreshRate = 300
+cytomine.software.repositoryManagerRefreshRate = 60
+cytomine.software.job.logRefreshRate = 15
+cytomine.software.pullingCheckRefreshRate = 20
+cytomine.software.pullingCheckTimeout = 1800
+cytomine.core.connectionRefreshRate = 30
 
-cytomine.software.github.user=""
+cytomine.software.github.username=""
 cytomine.software.github.token=""

@@ -27,14 +27,12 @@ import be.cytomine.client.models.User
 import be.cytomine.software.consumer.threads.CommunicationThread
 import be.cytomine.software.consumer.threads.ProcessingServerThread
 import be.cytomine.software.consumer.threads.SRThreadFactory
-import be.cytomine.software.repository.AbstractRepositoryManager
 import be.cytomine.software.repository.SoftwareManager
 import be.cytomine.software.repository.threads.RepositoryManagerThread
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import groovy.json.JsonSlurper
-import groovy.transform.CompileStatic
 import groovy.util.logging.Log4j
 import org.apache.log4j.PropertyConfigurator
 
@@ -57,6 +55,13 @@ class Main {
 
         log.info("GROOVY_HOME : ${System.getenv("GROOVY_HOME")}")
         log.info("PATH : ${System.getenv("PATH")}")
+
+        flattenConfig(configFile).each {String k, v ->
+            def value = v
+            if (k.contains("password") || k.contains("publicKey") || k.contains("privateKey") || k.contains("token"))
+                value = (v) ? "*****" : ""
+            log.info("[CONFIG] $k : $value")
+        }
 
         // Create the directory for logs
         def logsDirectory = new File((String) configFile.cytomine.software.path.jobs)
@@ -92,7 +97,8 @@ class Main {
     }
 
     static void ping() {
-        int limit = 20
+        int limit = configFile.cytomine.core.connectionRetries as int ?: 20
+        int refreshRate = configFile.cytomine.core.connectionRefreshRate as int ?: 30
         int i=0
         while (i < limit){
             try {
@@ -101,14 +107,28 @@ class Main {
                     log.info("Connected as " + current.get("username"))
                     break
                 }
-                sleep(30000)
+                sleep(refreshRate * 1000)
                 i++
             } catch (CytomineException e) {
                 log.error("Connection not established. Retry : "+i)
-                sleep(30000)
+                sleep(refreshRate * 1000)
                 i++
             }
         }
+    }
+
+    static def flattenConfig(ConfigObject config, String keyPrefix="") {
+        def data = [:]
+        config.each {key, value ->
+            if (value instanceof ConfigObject) {
+                keyPrefix = (keyPrefix.isEmpty()) ? key : "${keyPrefix}.${key}"
+                data << flattenConfig(value, keyPrefix)
+            } else {
+                def k = (keyPrefix.isEmpty()) ? key : "${keyPrefix}.${key}"
+                data[k] = value
+            }
+        }
+        return data
     }
 
     static void createRabbitMQConnection() {

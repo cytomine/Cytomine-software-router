@@ -30,11 +30,17 @@ import java.util.concurrent.Executors
 
 @Log4j
 class ProcessingServerThread implements Runnable {
+    private final int DEFAULT_PULLING_REFRESH_RATE = 20
+    private final int DEFAULT_PULLING_TIMEOUT = 1800
 
     private Channel channel
     private AbstractProcessingMethod processingMethod
     private ProcessingServer processingServer
     private def mapMessage
+    int pullingRefreshRate = (Main.configFile.cytomine.software.pullingCheckRefreshRate as int) ?: DEFAULT_PULLING_REFRESH_RATE
+    int pullingTimeout = (Main.configFile.cytomine.software.pullingCheckTimeout as int) ?: DEFAULT_PULLING_TIMEOUT
+
+
     def runningJobs = [:]
 
     ProcessingServerThread(Channel channel, def mapMessage, ProcessingServer processingServer) {
@@ -108,13 +114,13 @@ class ProcessingServerThread implements Runnable {
                                 Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.WAIT, 0, status)
                             } catch (Exception e) {}
 
-                            if (System.currentTimeSeconds() - start > 1800) {
+                            if (System.currentTimeSeconds() - start > pullingTimeout) {
                                 status = "A problem occurred during the pulling process !"
                                 Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.FAILED, 0, status)
                                 return
                             }
 
-                            sleep(60000)
+                            sleep(pullingRefreshRate * 1000)
                         }
 
                         def imageExists = new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()

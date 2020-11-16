@@ -25,9 +25,10 @@ import groovy.util.logging.Log4j
 
 @Log4j
 class JobExecutionThread implements Runnable {
+    private final DEFAULT_LOG_REFRESH_RATE = 15
 
     AbstractProcessingMethod processingMethod
-    def refreshRate = 15
+    def refreshRate = (Main.configFile.cytomine.software.job.logRefreshRate as int) ?: DEFAULT_LOG_REFRESH_RATE
     def command
     def cytomineJobId
     def serverJobId
@@ -60,7 +61,7 @@ class JobExecutionThread implements Runnable {
             while (processingMethod.isAlive(serverJobId)) {
                 log.info("${logPrefix()} Job is running !")
 
-                sleep((refreshRate as Long) * 1000)
+                sleep(refreshRate * 1000)
             }
 
             try {

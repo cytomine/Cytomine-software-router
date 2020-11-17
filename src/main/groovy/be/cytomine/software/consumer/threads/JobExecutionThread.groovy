@@ -21,15 +21,21 @@ import be.cytomine.client.models.Job
 
 import be.cytomine.software.consumer.Main
 import be.cytomine.software.processingmethod.AbstractProcessingMethod
+import be.cytomine.software.repository.threads.ImagePullerThread
 import groovy.util.logging.Log4j
 
 @Log4j
 class JobExecutionThread implements Runnable {
     private final DEFAULT_LOG_REFRESH_RATE = 15
+    private final int DEFAULT_PULLING_REFRESH_RATE = 20
+    private final int DEFAULT_PULLING_TIMEOUT = 1800
 
     AbstractProcessingMethod processingMethod
     def refreshRate = (Main.configFile.cytomine.software.job.logRefreshRate as int) ?: DEFAULT_LOG_REFRESH_RATE
-    def command
+    int pullingRefreshRate = (Main.configFile.cytomine.software.pullingCheckRefreshRate as int) ?: DEFAULT_PULLING_REFRESH_RATE
+    int pullingTimeout = (Main.configFile.cytomine.software.pullingCheckTimeout as int) ?: DEFAULT_PULLING_TIMEOUT
+    def pullingCommand
+    def runCommand
     def cytomineJobId
     def serverJobId
     def runningJobs = [:]
@@ -41,15 +47,99 @@ class JobExecutionThread implements Runnable {
         "[Job ${cytomineJobId}]" 
     }
 
+    def getAdaptedRunCommand() {
+        String cmd = ""
+        runCommand.each {
+            if (cmd == "singularity run ") {
+                cmd += persistentDirectory
+                cmd += ((persistentDirectory) ? File.separator : "")
+            }
+            cmd += it.toString() + " "
+        }
+        return cmd
+    }
+
+    def getImageName() {
+        def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
+        return temp.substring(0, temp.indexOf(" "))
+    }
+
     @Override
     void run() {
         try {
+            log.info("${logPrefix()} Try to execute... ")
+
+            log.info("${logPrefix()} Try to find image... ")
+            def imageName = getImageName()
+            try {
+                Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
+            } catch (Exception ignored) {}
+
+            // 1) The image is being pulled.
+            def wasPulling = false
+            def start = System.currentTimeSeconds()
+            while (Main.pendingPullingTable.contains(imageName)) {
+                wasPulling = true
+                def status = "The image [${imageName}] is currently being pulled ! Wait..."
+                log.warn("${logPrefix()} ${status}")
+                try {
+                    Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.WAIT, 0, status)
+                } catch (Exception ignored) {}
+
+                if (System.currentTimeSeconds() - start > pullingTimeout) {
+                    status = "A problem occurred during the pulling process !"
+                    Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0, status)
+                    notifyEnd()
+                    return
+                }
+
+                sleep(pullingRefreshRate * 1000)
+            }
+
+            def imageExists = new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()
+            def status
+            if (!imageExists) {
+                // 2) if image was being pulled but not exist at the end: error
+                if (wasPulling) {
+                    status = "A problem occurred during the pulling process !"
+                    log.error("${logPrefix()} ${status}")
+                    Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0, status)
+                    notifyEnd()
+                    return
+                }
+
+                // 3) image is not pulled and was not being pulled just before
+                log.info("${logPrefix()} Image not found locally ")
+                def imagePuller = new ImagePullerThread(pullingCommand: pullingCommand)
+
+                status = "The image [${imageName}] is currently being pulled ! Wait..."
+                log.warn("${logPrefix()} ${status}")
+                try {
+                    Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.WAIT, 0, status)
+                } catch (Exception ignored) {}
+
+                imagePuller.run()
+                imageExists = new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()
+                if (!imageExists) {
+                    status = "A problem occurred during the pulling process !"
+                    log.error("${logPrefix()} ${status}")
+                    Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0, status)
+                    notifyEnd()
+                    return
+                }
+            }
+
+            log.info("${logPrefix()} Found image!")
+            def runCommand = getAdaptedRunCommand()
+            log.info("${logPrefix()} ${runCommand}")
+
             // Executes a job on a server using a processing method(slurm,...) and a communication method (SSH,...)
-            def result = processingMethod.executeJob(command, serverParameters, workingDirectory)
+            def result = processingMethod.executeJob(runCommand, serverParameters, workingDirectory)
             serverJobId = result['jobId']
             if (serverJobId == -1) {
                 log.error("${logPrefix()} Job failed! Reason: ${result['message']}")
                 Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0, result['message'] as String)
+                notifyEnd()
                 return
             }
 

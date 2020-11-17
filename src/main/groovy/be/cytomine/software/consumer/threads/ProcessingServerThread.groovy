@@ -17,6 +17,7 @@ package be.cytomine.software.consumer.threads
  */
 
 import be.cytomine.client.Cytomine
+import be.cytomine.client.CytomineException
 import be.cytomine.client.models.ProcessingServer
 import be.cytomine.software.communication.SSH
 import be.cytomine.software.consumer.Main
@@ -30,15 +31,10 @@ import java.util.concurrent.Executors
 
 @Log4j
 class ProcessingServerThread implements Runnable {
-    private final int DEFAULT_PULLING_REFRESH_RATE = 20
-    private final int DEFAULT_PULLING_TIMEOUT = 1800
-
     private Channel channel
     private AbstractProcessingMethod processingMethod
     private ProcessingServer processingServer
     private def mapMessage
-    int pullingRefreshRate = (Main.configFile.cytomine.software.pullingCheckRefreshRate as int) ?: DEFAULT_PULLING_REFRESH_RATE
-    int pullingTimeout = (Main.configFile.cytomine.software.pullingCheckTimeout as int) ?: DEFAULT_PULLING_TIMEOUT
 
 
     def runningJobs = [:]
@@ -95,66 +91,11 @@ class ProcessingServerThread implements Runnable {
                     case "execute":
                         Long jobId = mapMessage["jobId"] as Long
                         logPrefix += "[Job ${jobId}]"
-                        log.info("${logPrefix} Try to execute... ")
-
-                        log.info("${logPrefix} Try to find image... ")
-                        def pullingCommand = mapMessage["pullingCommand"] as String
-                        def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
-                        def imageName = temp.substring(0, temp.indexOf(" "))
-
                         try {
-                            Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
-                        } catch (Exception e) {}
-
-                        def start = System.currentTimeSeconds()
-                        while (Main.pendingPullingTable.contains(imageName)) {
-                            def status = "The image [${imageName}] is currently being pulled ! Wait..."
-                            log.warn("${logPrefix} ${status}")
-                            try {
-                                Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.WAIT, 0, status)
-                            } catch (Exception e) {}
-
-                            if (System.currentTimeSeconds() - start > pullingTimeout) {
-                                status = "A problem occurred during the pulling process !"
-                                Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.FAILED, 0, status)
-                                return
-                            }
-
-                            sleep(pullingRefreshRate * 1000)
-                        }
-
-                        def imageExists = new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()
-
-                        def pullingResult = 0
-                        if (!imageExists) {
-                            log.info("${logPrefix} Image not found locally ")
-                            log.info("${logPrefix} Try pulling image... ")
-                            def process = pullingCommand.execute()
-                            process.waitFor()
-                            pullingResult = process.exitValue()
-
-                            if (pullingResult == 0) {
-                                def movingProcess = ("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}").execute()
-                                movingProcess.waitFor()
-                            }
-                        }
-
-                        if (imageExists || pullingResult == 0) {
-                            log.info("${logPrefix} Found image!")
-
-                            String command = ""
-                            mapMessage["command"].each {
-                                if (command == "singularity run ") {
-                                    command += processingServer.getStr("persistentDirectory")
-                                    command += (processingServer.getStr("persistentDirectory") ? File.separator : "")
-                                }
-                                command += it.toString() + " "
-                            }
-
-                            log.info("${logPrefix} Job in queue!")
                             Runnable jobExecutionThread = new JobExecutionThread(
                                     processingMethod: processingMethod,
-                                    command: command,
+                                    pullingCommand: mapMessage["pullingCommand"],
+                                    runCommand: mapMessage["command"],
                                     cytomineJobId: jobId,
                                     runningJobs: runningJobs,
                                     serverParameters: mapMessage["serverParameters"],
@@ -164,12 +105,19 @@ class ProcessingServerThread implements Runnable {
                             synchronized (runningJobs) {
                                 runningJobs.put(jobId, jobExecutionThread)
                             }
-                            Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.INQUEUE, 0)
+                            try {
+                                Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.INQUEUE, 0)
+                            }
+                            catch (CytomineException ignored) {}
                             ExecutorService executorService = Executors.newSingleThreadExecutor()
                             executorService.execute(jobExecutionThread)
-                        } else {
-                            def status = "A problem occurred during the pulling process !"
+                            log.info("${logPrefix} Job in queue!")
+                        }
+                        catch (Exception e) {
+                            def status = "A problem occurred during job launching !"
                             log.error("${logPrefix} ${status}")
+                            log.error(e)
+                            e.printStackTrace()
                             Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.FAILED, 0, status)
                         }
 

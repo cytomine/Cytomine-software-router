@@ -21,8 +21,9 @@ import groovy.json.JsonSlurper
 class DockerHubManager {
 
     def username
+    final int pageSize = 100
 
-    private def getRequest(def request) {
+    private static def getRequest(def request) {
         def result = new StringBuilder()
         def url = new URL(request as String)
         def connection= url.openConnection() as HttpURLConnection
@@ -37,43 +38,34 @@ class DockerHubManager {
         return new JsonSlurper().parseText(result.toString())
     }
 
-    def getRepositories() throws FileNotFoundException {
-        def repositoriesList = []
+    private static def fetchAll(url) {
+        def data = []
 
-        def url = "https://registry.hub.docker.com/v2/repositories/${username}/"
         while (url) {
-            def result = getRequest(url)
+            if (!url) break
 
-            if (result?.count != null && (result?.count as Integer) > 0) {
-                def repositories = result?.results
-                repositories.each { elem ->
-                    repositoriesList.add(elem."name" as String)
+            def response = getRequest(url)
+
+            if (response?.count != null && (response?.count as Integer) > 0) {
+                def results = response?.results
+                results.each { elem ->
+                    data.add(elem."name" as String)
                 }
             }
 
-            url = result?.next
+            url = response?.next
         }
 
-        return repositoriesList
+        return data
+    }
+
+    def getRepositories() throws FileNotFoundException {
+        def url = "https://registry.hub.docker.com/v2/repositories/${username}/?page_size=${pageSize}"
+        return fetchAll(url)
     }
 
     def getTags(def repository) throws FileNotFoundException {
-        def tagsList = []
-
-        def url = "https://registry.hub.docker.com/v2/repositories/${username as String}/${repository as String}/tags/"
-        while (url) {
-            def result = getRequest(url)
-
-            if (result?.count != null && (result?.count as Integer) > 0) {
-                def tags = result?.results
-                tags.each { elem ->
-                    tagsList.add(elem."name" as String)
-                }
-            }
-
-            url = result?.next
-        }
-
-        return tagsList
+        def url = "https://registry.hub.docker.com/v2/repositories/${username}/${repository}/tags/?page_size=${pageSize}"
+        return fetchAll(url)
     }
 }

@@ -105,10 +105,7 @@ class ProcessingServerThread implements Runnable {
                             synchronized (runningJobs) {
                                 runningJobs.put(jobId, jobExecutionThread)
                             }
-                            try {
-                                Main.cytomine.changeStatus(jobId, Cytomine.JobStatus.INQUEUE, 0)
-                            }
-                            catch (CytomineException ignored) {}
+
                             ExecutorService executorService = Executors.newSingleThreadExecutor()
                             executorService.execute(jobExecutionThread)
                             log.info("${logPrefix} Job in queue!")

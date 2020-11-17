@@ -1,6 +1,7 @@
 package be.cytomine.software.consumer.threads
 
 import be.cytomine.client.Cytomine
+import be.cytomine.client.CytomineException
 import be.cytomine.client.models.Job
 
 /*
@@ -71,10 +72,6 @@ class JobExecutionThread implements Runnable {
 
             log.info("${logPrefix()} Try to find image... ")
             def imageName = getImageName()
-            try {
-                Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
-            } catch (Exception ignored) {}
-
             // 1) The image is being pulled.
             def wasPulling = false
             def start = System.currentTimeSeconds()
@@ -135,6 +132,11 @@ class JobExecutionThread implements Runnable {
 
             // Executes a job on a server using a processing method(slurm,...) and a communication method (SSH,...)
             def result = processingMethod.executeJob(runCommand, serverParameters, workingDirectory)
+            try {
+                Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.INQUEUE, 0)
+            }
+            catch (CytomineException ignored) {}
+
             serverJobId = result['jobId']
             if (serverJobId == -1) {
                 log.error("${logPrefix()} Job failed! Reason: ${result['message']}")
@@ -154,13 +156,11 @@ class JobExecutionThread implements Runnable {
                 sleep(refreshRate * 1000)
             }
 
-            try {
-                Job job = Main.cytomine.getJob(cytomineJobId)
-                if (job.getInt('status') == Cytomine.JobStatus.INQUEUE) {
-                    Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0)
-                }
+            Job job = Main.cytomine.getJob(cytomineJobId)
+            def notStartedStatuses = [Cytomine.JobStatus.INQUEUE, Cytomine.JobStatus.NOTLAUNCH, Cytomine.JobStatus.WAIT]
+            if (notStartedStatuses.contains(job.getInt('status'))) {
+                Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.FAILED, 0)
             }
-            catch (Exception ignored) {}
 
             // Retrieve the slurm job log
             if (processingMethod.retrieveLogs(serverJobId, cytomineJobId, workingDirectory)) {

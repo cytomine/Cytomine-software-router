@@ -93,11 +93,11 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
                 return [jobId: jobId.find() ? jobId.group() as Integer : -1, message: ""]
             } catch (JSchException ex) {
                 errorMessage = ex.getMessage()
-                log.info(errorMessage)
+                log.warn(errorMessage)
                 retryOnError = true
             } catch (Exception ex) {
                 errorMessage = ex.getMessage()
-                log.info(errorMessage)
+                log.error(errorMessage)
                 retryOnError = false
             }
         }
@@ -124,10 +124,10 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
                 communication.copyRemoteToLocal(workingDirectory?:".", "${Main.configFile.cytomine.software.path.jobs}/log.out", "${jobId}.out")
                 return true
             } catch (JSchException ex) {
-                log.info(ex.getMessage())
+                log.warn(ex.getMessage())
                 retryOnError = true
             } catch (Exception ex) {
-                log.info(ex.getMessage())
+                log.error(ex.getMessage())
                 retryOnError = false
             }
         }
@@ -146,10 +146,10 @@ class SlurmProcessingMethod extends AbstractProcessingMethod {
                 def result = communication.executeCommand(killCommand)
                 return result == ""
             } catch (JSchException ex) {
-                log.info(ex.getMessage())
+                log.warn(ex.getMessage())
                 retryOnError = true
             } catch (Exception ex) {
-                log.info(ex.getMessage())
+                log.error(ex.getMessage())
                 retryOnError = false
             }
         }

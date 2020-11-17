@@ -65,7 +65,7 @@ class ProcessingServerThread implements Runnable {
             log.info("================================================")
 
         } catch (ClassNotFoundException ex) {
-            log.info(ex.toString())
+            log.error(ex.toString())
         }
     }
 
@@ -146,7 +146,8 @@ class ProcessingServerThread implements Runnable {
                 }
             }
             catch (Exception e) {
-                log.info(e.printStackTrace())
+                log.error(e)
+                e.printStackTrace()
             }
         }
     }

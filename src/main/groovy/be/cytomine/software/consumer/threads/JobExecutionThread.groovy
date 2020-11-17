@@ -199,7 +199,7 @@ class JobExecutionThread implements Runnable {
             Main.cytomine.changeStatus(cytomineJobId, 8, 0) // Cytomine.JobStatus.KILLED = 8
         }
         else {
-            log.info("${logPrefix()} The job [${cytomineJobId}] has not been killed !")
+            log.error("${logPrefix()} The job [${cytomineJobId}] has not been killed !")
             Main.cytomine.changeStatus(cytomineJobId, Cytomine.JobStatus.INDETERMINATE, 0)
         }
     }

@@ -90,13 +90,13 @@ class SoftwareManager {
                             ExecutorService executorService = Executors.newSingleThreadExecutor(new SRThreadFactory("imagePuller-$repository-$newTag"))
                             executorService.execute(imagePullerThread)
                         } catch (GHFileNotFoundException ex) {
-                            log.info("$logPrefix --> No descriptor: ${ex.getMessage()}")
+                            log.error("$logPrefix --> No descriptor: ${ex.getMessage()}")
                         } catch (BoutiquesException ex) {
-                            log.info("$logPrefix --> Invalid Boutiques descriptor: ${ex.getMessage()}")
+                            log.error("$logPrefix --> Invalid Boutiques descriptor: ${ex.getMessage()}")
                         } catch (CytomineException ex) {
-                            log.info("$logPrefix --> Exception with Cytomine : ${ex.toString()} - ${ex.getMessage()}")
+                            log.error("$logPrefix --> Exception with Cytomine : ${ex.toString()} - ${ex.getMessage()}")
                         } catch (Exception ex) {
-                            log.info("$logPrefix --> Unknown exception occurred : ${ex.getMessage()}")
+                            log.error("$logPrefix --> Unknown exception occurred : ${ex.getMessage()}")
                         }
                     }
                     else {
@@ -115,13 +115,13 @@ class SoftwareManager {
                         ExecutorService executorService = Executors.newSingleThreadExecutor(new SRThreadFactory("ImagePuller-$repository-$newTag"))
                         executorService.execute(imagePullerThread)
                     } catch (GHFileNotFoundException ex) {
-                        log.info("$logPrefix --> No descriptor: ${ex.getMessage()}")
+                        log.error("$logPrefix --> No descriptor: ${ex.getMessage()}")
                     } catch (BoutiquesException ex) {
-                        log.info("$logPrefix --> Invalid Boutiques descriptor: ${ex.getMessage()}")
+                        log.error("$logPrefix --> Invalid Boutiques descriptor: ${ex.getMessage()}")
                     } catch (CytomineException ex) {
-                        log.info("$logPrefix --> Exception with Cytomine : ${ex.toString()} - ${ex.getMessage()}")
+                        log.error("$logPrefix --> Exception with Cytomine : ${ex.toString()} - ${ex.getMessage()}")
                     } catch (Exception ex) {
-                        log.info("$logPrefix --> Unknown exception occurred : ${ex.getMessage()}")
+                        log.error("$logPrefix --> Unknown exception occurred : ${ex.getMessage()}")
                     }
                 }
             }

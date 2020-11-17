@@ -53,7 +53,7 @@ class SSH implements Communication {
 
             return session
         } catch (JSchException ex) {
-            log.info(ex.toString())
+            log.error(ex.toString())
             return null
         }
     }

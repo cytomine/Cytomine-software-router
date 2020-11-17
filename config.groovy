@@ -29,3 +29,6 @@ cytomine.core.connectionRefreshRate = 30
 
 cytomine.software.github.username=""
 cytomine.software.github.token=""
+
+cytomine.software.dockerhub.username=""
+cytomine.software.dockerhub.password=""

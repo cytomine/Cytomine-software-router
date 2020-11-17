@@ -24,6 +24,18 @@ class ImagePullerThread implements Runnable {
 
     def pullingCommand
 
+    def pullUsername = Main.configFile.cytomine.software.dockerhub.username ?: null
+    def pullPassword = Main.configFile.cytomine.software.dockerhub.password ?: null
+
+    def getEnv() {
+        def env = []
+        if (pullUsername && !pullUsername.isEmpty() && pullPassword && !pullPassword.isEmpty()) {
+            env.add("SINGULARITY_DOCKER_USERNAME=$pullUsername")
+            env.add("SINGULARITY_DOCKER_PASSWORD=$pullPassword")
+        }
+        return (env.size() > 0) ? env : null
+    }
+
     @Override
     void run() {
         def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
@@ -40,7 +52,7 @@ class ImagePullerThread implements Runnable {
             Main.pendingPullingTable.add(imageName)
         }
 
-        def process = (pullingCommand as String).execute()
+        def process = (pullingCommand as String).execute(getEnv(), null)
         process.waitFor()
         if (process.exitValue() == 0) {
             log.info("The image [${imageName}] has successfully been pulled !")

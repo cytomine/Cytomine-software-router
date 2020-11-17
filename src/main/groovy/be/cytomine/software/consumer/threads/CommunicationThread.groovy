@@ -68,6 +68,7 @@ class CommunicationThread implements Runnable {
                     ExecutorService executorService = Executors.newSingleThreadExecutor()
                     executorService.execute(processingServerThread)
                     break
+                case "addSoftwareUserRepository":
                 case "refreshSoftwareUserRepositoryList":
                     log.info("[Communication] Re-fetch software user repositories, it has changed")
                     def repositoryManagers = Main.createRepositoryManagers()

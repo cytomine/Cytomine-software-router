@@ -71,6 +71,7 @@ class CommunicationThread implements Runnable {
                 case "addSoftwareUserRepository":
                 case "refreshSoftwareUserRepositoryList":
                     log.info("[Communication] Re-fetch software user repositories, it has changed")
+                    sleep(3000)
                     def repositoryManagers = Main.createRepositoryManagers()
 
                     synchronized (repositoryManagerThread.repositoryManagers) {

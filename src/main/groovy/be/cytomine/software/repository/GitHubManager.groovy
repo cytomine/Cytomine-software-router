@@ -49,7 +49,7 @@ class GitHubManager extends AbstractRepositoryManager {
         try {
             def currentRepository = ghUser.getRepository((repository as String).trim().toLowerCase())
             if (currentRepository == null) {
-                throw new GHFileNotFoundException("The repository doesn't exist !")
+                throw new GHFileNotFoundException("The repository ${(repository as String).trim().toLowerCase()} doesn't exist !")
             }
             def content = currentRepository.getDirectoryContent(".", release as String)
 
@@ -66,6 +66,10 @@ class GitHubManager extends AbstractRepositoryManager {
             }
             throw new GHFileNotFoundException("The software descriptor doesn't exist !")
         } catch (IOException e){
+            if (e instanceof GHFileNotFoundException){
+                log.error(e.getMessage())
+                throw e
+            }
             checkRateLimit()
             log.info(e.printStackTrace())
         }

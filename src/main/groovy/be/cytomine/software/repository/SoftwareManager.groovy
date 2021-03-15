@@ -85,7 +85,7 @@ class SoftwareManager {
                     } catch (CytomineException ex) {
                         log.info("--> Error during the adding of [${repository}] to Cytomine : ${ex.getMessage()} ${ex.getHttpCode()} ${ex.getMsg()}")
                     } catch (Exception ex) {
-                        log.info("--> Unknown exception occurred : ${ex.printStackTrace()}")
+                        log.info("--> Unknown exception ${ex.getClass()} occurred : ${ex.printStackTrace()}")
                     }
 
                 } else {

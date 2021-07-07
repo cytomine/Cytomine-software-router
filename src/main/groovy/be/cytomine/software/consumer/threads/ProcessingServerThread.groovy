@@ -100,6 +100,7 @@ class ProcessingServerThread implements Runnable {
                         try {
                             Main.cytomine.changeStatus(jobId, Job.JobStatus.WAIT, 0, "Try to find image [${imageName}]")
                         } catch (Exception e) {}
+
                         def start = System.currentTimeSeconds()
                         while (Main.pendingPullingTable.contains(imageName)) {
                             def status = "The image [${imageName}] is currently being pulled ! Wait..."

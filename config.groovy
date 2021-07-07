@@ -22,4 +22,4 @@ cytomine.software.ssh.maxRetries = 3
 cytomine.software.allowDockerfileCompilation = true
 
 // In seconds
-cytomine.software.repositoryManagerRefreshRate = 300
+cytomine.software.repositoryManagerRefreshRate = 3600

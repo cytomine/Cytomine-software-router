@@ -113,6 +113,19 @@ class CommunicationThread implements Runnable {
                     repositoryManagerThread.refreshAll()
 
                     break
+                case "refreshSoftwareUserRepositoryList":
+                    log.info("[Communication] Re-fetch software user repositories, it has changed")
+                    sleep(3000)
+                    def repositoryManagers = Main.createRepositoryManagers()
+
+                    synchronized (repositoryManagerThread.repositoryManagers) {
+                        repositoryManagerThread.repositoryManagers = repositoryManagers
+                    }
+
+                    // Refresh all after add
+                    repositoryManagerThread.refreshAll()
+
+                    break
                 case "refreshRepository":
                     log.info("[Communication] Refresh software user repository: ${mapMessage["username"]}")
                     repositoryManagerThread.refresh(mapMessage["username"])

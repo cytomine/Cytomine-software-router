@@ -1,5 +1,7 @@
 package be.cytomine.software.consumer.threads
 
+import be.cytomine.client.Cytomine
+
 /*
  * Copyright (c) 2009-2020. Authors: see NOTICE file.
  *
@@ -16,40 +18,130 @@ package be.cytomine.software.consumer.threads
  * limitations under the License.
  */
 
-import be.cytomine.client.Cytomine
-import be.cytomine.client.models.AttachedFile
-import be.cytomine.client.models.Job
-
 import be.cytomine.software.consumer.Main
 import be.cytomine.software.processingmethod.AbstractProcessingMethod
+import be.cytomine.software.repository.threads.ImagePullerThread
 import groovy.util.logging.Log4j
+import be.cytomine.client.CytomineException
+import be.cytomine.client.models.Job
+import be.cytomine.client.models.AttachedFile
 
 @Log4j
 class JobExecutionThread implements Runnable {
+    private final DEFAULT_LOG_REFRESH_RATE = 15
+    private final int DEFAULT_PULLING_REFRESH_RATE = 20
+    private final int DEFAULT_PULLING_TIMEOUT = 1800
 
     AbstractProcessingMethod processingMethod
-    def refreshRate = 15
-    def command
+    def refreshRate = (Main.configFile.cytomine.software.job.logRefreshRate as int) ?: DEFAULT_LOG_REFRESH_RATE
+    int pullingRefreshRate = (Main.configFile.cytomine.software.pullingCheckRefreshRate as int) ?: DEFAULT_PULLING_REFRESH_RATE
+    int pullingTimeout = (Main.configFile.cytomine.software.pullingCheckTimeout as int) ?: DEFAULT_PULLING_TIMEOUT
+    def pullingCommand
+    def runCommand
     def cytomineJobId
     def serverJobId
     def runningJobs = [:]
     def serverParameters
     def persistentDirectory
     def workingDirectory
-    
-    def logPrefix() { 
-        "[Job ${cytomineJobId}]" 
+
+    def logPrefix() {
+        "[Job ${cytomineJobId}]"
+    }
+
+    def getAdaptedRunCommand() {
+        String cmd = ""
+        runCommand.each {
+            if (cmd == "singularity run ") {
+                cmd += persistentDirectory
+                cmd += ((persistentDirectory) ? File.separator : "")
+            }
+            cmd += it.toString() + " "
+        }
+        return cmd
+    }
+
+    def getImageName() {
+        def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
+        return temp.substring(0, temp.indexOf(" "))
     }
 
     @Override
     void run() {
         try {
+            log.info("${logPrefix()} Try to execute... ")
+
+            log.info("${logPrefix()} Try to find image... ")
+            def imageName = getImageName()
+            // 1) The image is being pulled.
+            def wasPulling = false
+            def start = System.currentTimeSeconds()
+            while (Main.pendingPullingTable.contains(imageName)) {
+                wasPulling = true
+                def status = "The image [${imageName}] is currently being pulled ! Wait..."
+                log.warn("${logPrefix()} ${status}")
+                try {
+                    Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.WAIT, 0, status)
+                } catch (Exception ignored) {}
+
+                if (System.currentTimeSeconds() - start > pullingTimeout) {
+                    status = "A problem occurred during the pulling process !"
+                    Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.FAILED, 0, status)
+                    notifyEnd()
+                    return
+                }
+
+                sleep(pullingRefreshRate * 1000)
+            }
+
+            def imageExists = new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()
+            def status
+            if (!imageExists) {
+                // 2) if image was being pulled but not exist at the end: error
+                if (wasPulling) {
+                    status = "A problem occurred during the pulling process !"
+                    log.error("${logPrefix()} ${status}")
+                    Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.FAILED, 0, status)
+                    notifyEnd()
+                    return
+                }
+
+                // 3) image is not pulled and was not being pulled just before
+                log.info("${logPrefix()} Image not found locally ")
+                def imagePuller = new ImagePullerThread(pullingCommand: pullingCommand)
+
+                status = "The image [${imageName}] is currently being pulled ! Wait..."
+                log.warn("${logPrefix()} ${status}")
+                try {
+                    Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.WAIT, 0, status)
+                } catch (Exception ignored) {}
+
+                imagePuller.run()
+                imageExists = new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()
+                if (!imageExists) {
+                    status = "A problem occurred during the pulling process !"
+                    log.error("${logPrefix()} ${status}")
+                    Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.FAILED, 0, status)
+                    notifyEnd()
+                    return
+                }
+            }
+
+            log.info("${logPrefix()} Found image!")
+            def runCommand = getAdaptedRunCommand()
+            log.info("${logPrefix()} ${runCommand}")
+
             // Executes a job on a server using a processing method(slurm,...) and a communication method (SSH,...)
-            def result = processingMethod.executeJob(command, serverParameters, persistentDirectory, workingDirectory)
+            def result = processingMethod.executeJob(runCommand, serverParameters, persistentDirectory, workingDirectory)
+            try {
+                Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.INQUEUE, 0)
+            } catch (CytomineException ignored) {}
+
             serverJobId = result['jobId']
             if (serverJobId == -1) {
                 log.error("${logPrefix()} Job failed! Reason: ${result['message']}")
-                Main.cytomine.changeStatus(cytomineJobId, Job.JobStatus.FAILED, 0, result['message'] as String)
+                Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.FAILED, 0, result['message'] as String)
+                notifyEnd()
                 return
             }
 
@@ -61,16 +153,14 @@ class JobExecutionThread implements Runnable {
             while (processingMethod.isAlive(serverJobId)) {
                 log.info("${logPrefix()} Job is running !")
 
-                sleep((refreshRate as Long) * 1000)
+                sleep(refreshRate * 1000)
             }
 
-            try {
-                Job job = Main.cytomine.getJob(cytomineJobId)
-                if (job.getInt('status') == Job.JobStatus.INQUEUE.getValue()) {
-                    Main.cytomine.changeStatus(cytomineJobId, Job.JobStatus.FAILED, 0)
-                }
+            Job job = new Job().fetch(cytomineJobId)
+            def notStartedStatuses = [Job.JobStatus.INQUEUE, Job.JobStatus.NOTLAUNCH, Job.JobStatus.WAIT]
+            if (notStartedStatuses.contains(job.getInt('status'))) {
+                Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.FAILED, 0)
             }
-            catch (Exception ignored) {}
 
             // Retrieve the slurm job log
             if (processingMethod.retrieveLogs(serverJobId, cytomineJobId, workingDirectory)) {
@@ -83,8 +173,8 @@ class JobExecutionThread implements Runnable {
                     // Upload the log file as an attachedFile to the Cytomine-core
                     new AttachedFile("be.cytomine.processing.Job", cytomineJobId as Long, filePath as String).save()
 
+
                     // Remove the log file
-                    log.info("${logPrefix()} Logs attached to the job and deleted from the disk")
                     new File(filePath as String).delete()
                 }
             } else {
@@ -92,8 +182,9 @@ class JobExecutionThread implements Runnable {
             }
         }
         catch (Exception e) {
+            log.error e
             // Indeterminate status because job could have been launched before the exception
-            Main.cytomine.changeStatus(cytomineJobId, Job.JobStatus.INDETERMINATE, 0, e.getMessage())
+            Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.INDETERMINATE, 0, e.getMessage().take(255).toString())
         }
 
         // Remove the job id from the running jobs
@@ -106,11 +197,11 @@ class JobExecutionThread implements Runnable {
                 runningJobs.remove(cytomineJobId)
             }
             log.info("${logPrefix()} The job [${cytomineJobId}] has been killed successfully !")
-            Main.cytomine.changeStatus(cytomineJobId, Job.JobStatus.KILLED, 0)
+            Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.KILLED, 0) // Job.JobStatus.KILLED = 8
         }
         else {
-            log.info("${logPrefix()} The job [${cytomineJobId}] has not been killed !")
-            Main.cytomine.changeStatus(cytomineJobId, Job.JobStatus.INDETERMINATE, 0)
+            log.error("${logPrefix()} The job [${cytomineJobId}] has not been killed !")
+            Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.INDETERMINATE, 0)
         }
     }
 

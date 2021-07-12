@@ -48,13 +48,22 @@ class Utils {
     static Process executeProcess(String command, String executiveDirectory) {
         return executeProcess(command, new File(executiveDirectory))
     }
+    static Process executeProcess(String command, String executiveDirectory, Map<String, Object> envs) {
+        return executeProcess(command, new File(executiveDirectory), envs)
+    }
     static Process executeProcess(String command, File executiveDirectory) {
+        executeProcess(command, executiveDirectory, null)
+    }
+    static Process executeProcess(String command, File executiveDirectory, Map<String, Object> envs) {
         if(command.contains("&&")) return executeProcesses(command.split("&&"), executiveDirectory)[-1]
         log.info "run process "+command
-        def process = new ProcessBuilder((command).split(" ") as List)
+        def processBuilder = new ProcessBuilder((command).split(" ") as List)
                 .directory(executiveDirectory)
                 .redirectErrorStream(true)
-                .start()
+        if (envs) {
+            processBuilder.environment().putAll(envs)
+        }
+        def process = processBuilder.start()
         process.waitFor()
         return process
     }

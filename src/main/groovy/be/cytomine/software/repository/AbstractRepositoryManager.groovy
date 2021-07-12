@@ -43,10 +43,18 @@ abstract class AbstractRepositoryManager {
     }
 
     AbstractRepositoryManager(String username) {
-        this.username = username
-        connectToRepository(this.username)
+        this(username, [:])
     }
 
-    def abstract connectToRepository(String username)
+    AbstractRepositoryManager(String username, def opts) {
+        this.username = username
+        connectToRepository(this.username, opts)
+    }
+
+    def connectToRepository(String username) {
+        connectToRepository(username, [:])
+    }
+
+    def abstract connectToRepository(String username, def opts)
 
 }

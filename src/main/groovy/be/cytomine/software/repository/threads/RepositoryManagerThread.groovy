@@ -25,31 +25,22 @@ class RepositoryManagerThread implements Runnable {
 
     private final DEFAULT_REFRESH_RATE = 300
 
-    def refreshRate
+    def refreshRate = (Main.configFile.cytomine.software.repositoryManagerRefreshRate as int) ?: DEFAULT_REFRESH_RATE
     def index = 0
     def repositoryManagers = []
 
     @Override
     void run() {
-        def result = Main.configFile.cytomine.software.repositoryManagerRefreshRate
-        if (result.getClass().getName() == "groovy.util.ConfigObject" && result.isEmpty()) {
-            refreshRate = DEFAULT_REFRESH_RATE
-        } else  {
-            refreshRate = result
-        }
-
-        log.info("Refresh rate (seconds) : ${refreshRate}")
+        log.info("Looking for new repositories every ${refreshRate}s")
 
         while (true) {
-            log.info("Amount of repository managers : ${repositoryManagers.size()}")
+            log.info("Periodic refreshing of all repository managers (${repositoryManagers.size()})")
 
-            if (repositoryManagers.size() > 0) {
-                (repositoryManagers.get(index) as SoftwareManager).updateSoftware()
-
-                index = ++index % repositoryManagers.size()
+            repositoryManagers.each {
+                (it as SoftwareManager).updateSoftware()
             }
 
-            sleep((refreshRate as Long) * 1000)
+            sleep(refreshRate * 1000)
         }
     }
 
@@ -60,7 +51,7 @@ class RepositoryManagerThread implements Runnable {
     }
 
     def refreshAll() {
-        log.info("Refreshing all the repository managers !")
+        log.info("Refreshing all the repository managers (${repositoryManagers.size()}) !")
         repositoryManagers.each { manager -> manager.updateSoftware() }
     }
 

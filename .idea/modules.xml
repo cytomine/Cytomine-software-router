@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Cytomine-software-router.iml" filepath="$PROJECT_DIR$/Cytomine-software-router.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cytomine-software-router.iml" filepath="$PROJECT_DIR$/cytomine-software-router.iml" />
     </modules>
   </component>
 </project>

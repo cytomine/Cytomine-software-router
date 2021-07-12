@@ -33,37 +33,53 @@ class GitHubManager extends AbstractRepositoryManager {
         super(username)
     }
 
+    GitHubManager(String username, def opts) {
+        super(username, opts)
+    }
+
     @Override
-    def connectToRepository(String username) {
+    def connectToRepository(String username, def opts) {
         try {
-            gitHub=new GitHubBuilder().withRateLimitHandler(RateLimitHandler.FAIL).build()
+            if (opts.containsKey("token")) {
+                gitHub = new GitHubBuilder().withOAuthToken(opts.token, username).withRateLimitHandler(RateLimitHandler.FAIL).build()
+                log.info("Github $username connected with token")
+            } else if (opts.containsKey("softwareRouterGithubUsername") && opts.containsKey("softwareRouterGithubToken")) {
+                gitHub = new GitHubBuilder().withOAuthToken(opts.softwareRouterGithubToken, opts.softwareRouterGithubUsername).withRateLimitHandler(RateLimitHandler.FAIL).build()
+                log.info("Github $username connected with software router Github credentials")
+            } else {
+                gitHub = new GitHubBuilder().withRateLimitHandler(RateLimitHandler.FAIL).build()
+                log.info("Github $username connected anonymously")
+            }
             ghRateLimit = gitHub.getRateLimit()
             ghUser = gitHub.getUser(username)
-        } catch(IOException e) {
+        } catch(IOException ex) {
             checkRateLimit()
             log.info(e.printStackTrace())
         }
+
     }
 
     def retrieveDescriptor(def repository, def release) throws GHFileNotFoundException {
         try {
             def currentRepository = ghUser.getRepository((repository as String).trim().toLowerCase())
             if (currentRepository == null) {
-                throw new GHFileNotFoundException("The repository ${(repository as String).trim().toLowerCase()} doesn't exist !")
+                throw new GHFileNotFoundException("The repository doesn't exist !")
             }
+
             def content = currentRepository.getDirectoryContent(".", release as String)
 
             for (def element : content) {
                 if (element.getName().trim().toLowerCase() == Main.configFile.cytomine.software.descriptorFile) {
                     def url = new URL(element.getDownloadUrl())
                     def readableByteChannel = Channels.newChannel(url.openStream())
-                    def filename = (Main.configFile.cytomine.software.path.softwareSources as String) + element.getName()
+                    def filename = (Main.configFile.cytomine.software.path.softwareSources as String) + "/" + new Date().getTime().toString() + ".json"
                     def fileOutputStream = new FileOutputStream(filename)
                     fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE)
 
                     return filename
                 }
             }
+
             throw new GHFileNotFoundException("The software descriptor doesn't exist !")
         } catch (IOException e){
             if (e instanceof GHFileNotFoundException){
@@ -74,7 +90,6 @@ class GitHubManager extends AbstractRepositoryManager {
             log.info(e.printStackTrace())
         }
     }
-
     private void checkRateLimit() {
         if(ghRateLimit.remaining == 0){
             log.error("API rate limit exceeded for this IP, limit will be reset at "+ghRateLimit.getResetDate())

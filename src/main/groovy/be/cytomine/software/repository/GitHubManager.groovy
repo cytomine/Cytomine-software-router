@@ -54,7 +54,7 @@ class GitHubManager extends AbstractRepositoryManager {
             ghUser = gitHub.getUser(username)
         } catch(IOException ex) {
             checkRateLimit()
-            log.info(e.printStackTrace())
+            log.info(ex.printStackTrace())
         }
 
     }

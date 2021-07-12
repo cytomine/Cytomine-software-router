@@ -73,7 +73,7 @@ apt-get -y install docker-ce
 RUN mkdir -p /software_router
 ADD ./ci/Cytomine-software-router.jar /software_router/
 
-#ADD ./scripts/docker/software_router/log4j.properties /software_router/
+ADD ./scripts/docker/software_router/log4j.properties /software_router/
 
 RUN mkdir -p /root/.ssh
 

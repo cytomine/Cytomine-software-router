@@ -84,19 +84,31 @@ class Main {
         def imagesDirectory = new File((String) configFile.cytomine.software.path.softwareImages)
         if (!imagesDirectory.exists()) imagesDirectory.mkdirs()
 
-        Cytomine.connection(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
-        cytomine = Cytomine.getInstance()
-        log.info("Cytomine core " + Cytomine.instance.getHost())
-        boolean success = false
-
         int i = 0;
+        boolean success = false
+        log.info "try to connect to cytomine core api"
         while ( i < Main.configFile.cytomine.software.ssh.maxRetries && !success) {
-            if(cytomine.getCurrentUser().getId() != null) success = true
-            else{
-                log.info "connection not found with Cytomine ... retry"
+            // Cytomine instance
+            Cytomine.connection(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
+            cytomine = Cytomine.getInstance()
+            try {
+                User user = cytomine.getCurrentUser()
+                log.info "$user ${user.getId()} ${(user.getId() != null)}"
+                success = (user.getId() != null)
+                if (!success) {
+                    throw new Exception("Cannot reach core")
+                }
+            } catch(Exception e) {
+                log.warn e.toString()
+                log.warn "connection not found with Cytomine ... retry"
+                e.printStackTrace()
                 sleep(2*60*1000)
+                i++
             }
-            i++
+        }
+
+        if (!success) {
+            throw new Exception("Cannot connect to cytomine core api")
         }
         ping()
 

@@ -1,6 +1,7 @@
 .idea/*
 *.iml
 *.class
+config_custom.groovy
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/

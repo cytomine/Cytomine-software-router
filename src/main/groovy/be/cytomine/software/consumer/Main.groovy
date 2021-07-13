@@ -173,8 +173,7 @@ class Main {
         channel = connection.createChannel()
     }
 
-    static def createRepositoryManagers() {
-        def repositoryManagers = []
+    static def buildConnectOpts(String token) {
         def connectOpts = [:]
         def ghUsername = configFile.cytomine.software.github.username as String
         if (ghUsername && !ghUsername.isEmpty())
@@ -182,15 +181,22 @@ class Main {
         def ghToken = configFile.cytomine.software.github.token as String
         if (ghToken && !ghToken.isEmpty())
             connectOpts << [softwareRouterGithubToken: ghToken]
+        if (token && !token.isEmpty()) {
+            connectOpts << [token: token]
+        }
+        return connectOpts
+    }
+
+    static def createRepositoryManagers() {
+        def repositoryManagers = []
+
         Collection<SoftwareUserRepository> softwareUserRepositories = Collection.fetch(SoftwareUserRepository.class);
         log.info("${softwareUserRepositories.size()} softwareUserRepositories found")
         for (int i = 0; i < softwareUserRepositories.size(); i++) {
             SoftwareUserRepository currentSoftwareUserRepository = softwareUserRepositories.get(i)
 
             try {
-                if (currentSoftwareUserRepository.getStr("token") && !currentSoftwareUserRepository.getStr("token").isEmpty()) {
-                    connectOpts << [token: currentSoftwareUserRepository.getStr("token")]
-                }
+                def connectOpts = buildConnectOpts(currentSoftwareUserRepository.getStr("token"))
                 SoftwareManager softwareManager = new SoftwareManager(
                         currentSoftwareUserRepository.getStr("username"),
                         currentSoftwareUserRepository.getStr("dockerUsername"),

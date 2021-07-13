@@ -82,7 +82,9 @@ class CommunicationThread implements Runnable {
                     log.info("prefix            : ${mapMessage["prefix"]}")
                     log.info("============================================")
 
-                    def softwareManager = new SoftwareManager(mapMessage["username"], mapMessage["dockerUsername"], mapMessage["prefix"], mapMessage["id"])
+                    def connectOpts = Main.buildConnectOpts(null)
+                    def softwareManager = new SoftwareManager(mapMessage["username"], mapMessage["dockerUsername"], mapMessage["prefix"], mapMessage["id"], connectOpts)
+
 
                     def repositoryManagerExist = false
                     for (SoftwareManager elem : repositoryManagerThread.repositoryManagers) {

@@ -115,6 +115,16 @@ class CommunicationThread implements Runnable {
                     repositoryManagerThread.refreshAll()
 
                     break
+                case "removeSoftwareUserRepository":
+                    log.info("[Communication] Remove a software user repository")
+                    log.info("============================================")
+                    log.info("username          : ${mapMessage["username"]}")
+                    log.info("dockerUsername    : ${mapMessage["dockerUsername"]}")
+                    log.info("prefix            : ${mapMessage["prefix"]}")
+                    log.info("============================================")
+                    boolean success = repositoryManagerThread.repositoryManagers.remove(new SoftwareManager(mapMessage["username"], mapMessage["dockerUsername"], mapMessage["prefix"], mapMessage["id"], Main.buildConnectOpts(null)))
+                    log.info("SoftwareManager removed : ${success}")
+                    break
                 case "refreshSoftwareUserRepositoryList":
                     log.info("[Communication] Re-fetch software user repositories, it has changed")
                     sleep(3000)

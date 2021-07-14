@@ -54,6 +54,21 @@ class SoftwareManager {
         name =  "SoftwareManager ${gitHubUsername}/${dockerUsername}"
     }
 
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        SoftwareManager that = (SoftwareManager) o
+
+        if (name != that.name) return false
+
+        return true
+    }
+
+    int hashCode() {
+        return (name != null ? name.hashCode() : 0)
+    }
+
     String toString() {
         return "$name ${prefixes.keySet()}"
     }

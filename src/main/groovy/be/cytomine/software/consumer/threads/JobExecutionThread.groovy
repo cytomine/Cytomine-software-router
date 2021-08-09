@@ -183,8 +183,9 @@ class JobExecutionThread implements Runnable {
         }
         catch (Exception e) {
             log.error e
+            e.printStackTrace()
             // Indeterminate status because job could have been launched before the exception
-            Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.INDETERMINATE, 0, e.getMessage().take(255).toString())
+            Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.INDETERMINATE, 0, (e.getMessage() ? e.getMessage().take(255).toString() : ""))
         }
 
         // Remove the job id from the running jobs

@@ -182,6 +182,7 @@ class JobExecutionThread implements Runnable {
             }
         }
         catch (Exception e) {
+            log.error "Error during thread execution"
             log.error e
             e.printStackTrace()
             // Indeterminate status because job could have been launched before the exception

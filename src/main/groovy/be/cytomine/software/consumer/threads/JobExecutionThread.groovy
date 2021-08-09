@@ -184,6 +184,8 @@ class JobExecutionThread implements Runnable {
         catch (Exception e) {
             log.error "Error during thread execution"
             log.error e
+            log.error "cytomineJobId=$cytomineJobId"
+            log.error "message=${(e.getMessage() ? e.getMessage().take(255).toString() : "")}"
             e.printStackTrace()
             // Indeterminate status because job could have been launched before the exception
             Cytomine.instance.changeStatus(cytomineJobId, Job.JobStatus.INDETERMINATE, 0, (e.getMessage() ? e.getMessage().take(255).toString() : ""))

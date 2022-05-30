@@ -204,7 +204,7 @@ class SoftwareManager {
         resultSoftware.save()
 
         if (software.description?.trim()) {
-            new Description("Software", resultSoftware.getId(), software.description as String).save()
+            new Description("be.cytomine.processing.Software", resultSoftware.getId(), software.description as String).save()
         }
 
         // Load constraints
@@ -235,7 +235,7 @@ class SoftwareManager {
 
             // Add the description
             if (element.description?.trim()) {
-                new Description("SoftwareParameter", resultSoftwareParameter.getId(), element.description as String).save()
+                new Description("be.cytomine.processing.SoftwareParameter", resultSoftwareParameter.getId(), element.description as String).save()
             }
 
             // Add the constraints

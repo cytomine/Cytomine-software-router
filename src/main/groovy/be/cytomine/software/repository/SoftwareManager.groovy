@@ -35,7 +35,6 @@ import org.kohsuke.github.GHFileNotFoundException
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import be.cytomine.client.models.AttachedFile
 
 @Log4j
 class SoftwareManager {

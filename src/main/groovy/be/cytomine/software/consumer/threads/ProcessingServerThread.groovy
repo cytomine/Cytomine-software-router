@@ -22,9 +22,7 @@ import be.cytomine.client.CytomineException
 import be.cytomine.client.models.ProcessingServer
 import be.cytomine.software.communication.SSH
 import be.cytomine.software.consumer.Main
-import be.cytomine.software.consumer.threads.JobExecutionThread
 import be.cytomine.software.processingmethod.AbstractProcessingMethod
-import be.cytomine.software.util.Utils
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.QueueingConsumer
 import groovy.json.JsonSlurper

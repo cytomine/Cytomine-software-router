@@ -103,7 +103,7 @@ class SoftwareManager {
 
                         try {
                             def result = installSoftware(repository, newTag)
-                            Cytomine.instance.deprecateSoftware(currentSoftware.getId())
+                            currentSoftware.deprecate()
                             softwareTable.put((repository as String).trim().toLowerCase(), result)
 
                             def imagePullerThread = new ImagePullerThread(pullingCommand: result.getStr("pullingCommand") as String)
@@ -192,7 +192,6 @@ class SoftwareManager {
     private def addSoftwareToCytomine(def version, def software, def command, def arguments, def pullingCommand,
                                       def idSoftwareUserRepository) throws CytomineException {
         // Add the piece of software
-//String name, String resultType, String executeCommand, String softwareVersion, Long idSoftwareUserRepository, Long idDefaultProcessingServer, String pullingCommand
         def resultSoftware = new Software(
                 software.name as String,
                 "",

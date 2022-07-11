@@ -1,4 +1,4 @@
-.idea/*
+.idea
 *.iml
 *.class
 config_custom.groovy
@@ -13,4 +13,3 @@ config_custom.groovy
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
-/.idea/

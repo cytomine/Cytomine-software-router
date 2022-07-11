@@ -3,7 +3,7 @@ package be.cytomine.software.repository
 import be.cytomine.client.Cytomine
 
 /*
- * Copyright (c) 2009-2020. Authors: see NOTICE file.
+ * Copyright (c) 2009-2022. Authors: see NOTICE file.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.kohsuke.github.GHFileNotFoundException
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import be.cytomine.client.models.AttachedFile
 
 @Log4j
 class SoftwareManager {
@@ -104,7 +103,7 @@ class SoftwareManager {
 
                         try {
                             def result = installSoftware(repository, newTag)
-                            Cytomine.instance.deprecateSoftware(currentSoftware.getId())
+                            currentSoftware.deprecate()
                             softwareTable.put((repository as String).trim().toLowerCase(), result)
 
                             def imagePullerThread = new ImagePullerThread(pullingCommand: result.getStr("pullingCommand") as String)
@@ -193,7 +192,6 @@ class SoftwareManager {
     private def addSoftwareToCytomine(def version, def software, def command, def arguments, def pullingCommand,
                                       def idSoftwareUserRepository) throws CytomineException {
         // Add the piece of software
-//String name, String resultType, String executeCommand, String softwareVersion, Long idSoftwareUserRepository, Long idDefaultProcessingServer, String pullingCommand
         def resultSoftware = new Software(
                 software.name as String,
                 "",
@@ -205,7 +203,7 @@ class SoftwareManager {
         resultSoftware.save()
 
         if (software.description?.trim()) {
-            new Description("Software", resultSoftware.getId(), software.description as String).save()
+            new Description("be.cytomine.processing.Software", resultSoftware.getId(), software.description as String).save()
         }
 
         // Load constraints
@@ -236,7 +234,7 @@ class SoftwareManager {
 
             // Add the description
             if (element.description?.trim()) {
-                new Description("SoftwareParameter", resultSoftwareParameter.getId(), element.description as String).save()
+                new Description("be.cytomine.processing.SoftwareParameter", resultSoftwareParameter.getId(), element.description as String).save()
             }
 
             // Add the constraints

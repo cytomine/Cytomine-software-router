@@ -1,7 +1,7 @@
 package be.cytomine.software.consumer
 
 /*
- * Copyright (c) 2009-2020. Authors: see NOTICE file.
+ * Copyright (c) 2009-2022. Authors: see NOTICE file.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,6 @@ import com.rabbitmq.client.ConnectionFactory
 import groovy.json.JsonSlurper
 import groovy.util.logging.Log4j
 import org.apache.log4j.PropertyConfigurator
-
-//import org.apache.log4j.PropertyConfigurator
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -86,32 +84,9 @@ class Main {
         def imagesDirectory = new File((String) configFile.cytomine.software.path.softwareImages)
         if (!imagesDirectory.exists()) imagesDirectory.mkdirs()
 
-        int i = 0;
-        boolean success = false
-        log.info "try to connect to cytomine core api"
-        while ( i < Main.configFile.cytomine.software.ssh.maxRetries && !success) {
-            // Cytomine instance
-            Cytomine.connection(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
-            cytomine = Cytomine.getInstance()
-            try {
-                User user = cytomine.getCurrentUser()
-                log.info "$user ${user.getId()} ${(user.getId() != null)}"
-                success = (user.getId() != null)
-                if (!success) {
-                    throw new Exception("Cannot reach core")
-                }
-            } catch(Exception e) {
-                log.warn e.toString()
-                log.warn "connection not found with Cytomine ... retry"
-                e.printStackTrace()
-                sleep(2*60*1000)
-                i++
-            }
-        }
-
-        if (!success) {
-            throw new Exception("Cannot connect to cytomine core api")
-        }
+        // Cytomine instance
+        Cytomine.connection(configFile.cytomine.core.url as String, configFile.cytomine.core.publicKey as String, configFile.cytomine.core.privateKey as String)
+        cytomine = Cytomine.getInstance()
         ping()
 
         log.info("Launch repository thread...")
@@ -130,6 +105,7 @@ class Main {
     }
 
     static void ping() {
+        boolean success = false
         int limit = configFile.cytomine.core.connectionRetries as int ?: 20
         int refreshRate = configFile.cytomine.core.connectionRefreshRate as int ?: 30
         int i=0
@@ -138,15 +114,20 @@ class Main {
                 User current = cytomine.getCurrentUser()
                 if(current.getId() != null) {
                     log.info("Connected as " + current.get("username"))
+                    success = true
                     break
+                } else {
+                    throw new Exception("Cannot reach core")
                 }
-                sleep(refreshRate * 1000)
-                i++
-            } catch (CytomineException e) {
-                log.error("Connection not established. Retry : "+i)
+            } catch (Exception e) {
+                log.warn e.toString()
+                log.warn("Connection not established. Retry : "+i)
                 sleep(refreshRate * 1000)
                 i++
             }
+        }
+        if (!success) {
+            throw new Exception("Cannot connect to cytomine core api")
         }
     }
 

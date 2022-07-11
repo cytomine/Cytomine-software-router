@@ -20,7 +20,6 @@ import be.cytomine.client.models.ProcessingServer
 import be.cytomine.client.models.Software
 import be.cytomine.software.consumer.Main
 import be.cytomine.software.management.SingleSoftwareManager
-import be.cytomine.software.repository.SoftwareManager
 import be.cytomine.software.repository.threads.ImagePullerThread
 import be.cytomine.software.repository.threads.RepositoryManagerThread
 import be.cytomine.software.util.Utils
@@ -75,56 +74,6 @@ class CommunicationThread implements Runnable {
                     executorService.execute(processingServerThread)
                     break
                 case "addSoftwareUserRepository":
-                    log.info("[Communication] Add a new software user repository")
-                    log.info("============================================")
-                    log.info("username          : ${mapMessage["username"]}")
-                    log.info("dockerUsername    : ${mapMessage["dockerUsername"]}")
-                    log.info("prefix            : ${mapMessage["prefix"]}")
-                    log.info("============================================")
-
-                    def connectOpts = Main.buildConnectOpts(null)
-                    def softwareManager = new SoftwareManager(mapMessage["username"], mapMessage["dockerUsername"], mapMessage["prefix"], mapMessage["id"], connectOpts)
-
-
-                    def repositoryManagerExist = false
-                    for (SoftwareManager elem : repositoryManagerThread.repositoryManagers) {
-
-                        // Check if the software manager already exists
-                        if (softwareManager.gitHubManager.getClass().getName() == elem.gitHubManager.getClass().getName() &&
-                                softwareManager.gitHubManager.username == elem.gitHubManager.username &&
-                                softwareManager.dockerHubManager.username == elem.dockerHubManager.username) {
-
-                            repositoryManagerExist = true
-
-                            // If the repository manager already exists and doesn't have the prefix yet, add it
-                            if (!elem.prefixes.containsKey(mapMessage["prefix"])) {
-                                elem.prefixes << [(mapMessage["prefix"]): mapMessage["id"]]
-                            }
-                            break
-                        }
-                    }
-
-                    // If the software manager doesn't exist, add it
-                    if (!repositoryManagerExist) {
-                        synchronized (repositoryManagerThread.repositoryManagers) {
-                            repositoryManagerThread.repositoryManagers.add(softwareManager)
-                        }
-                    }
-
-                    // Refresh all after add
-                    repositoryManagerThread.refreshAll()
-
-                    break
-                case "removeSoftwareUserRepository":
-                    log.info("[Communication] Remove a software user repository")
-                    log.info("============================================")
-                    log.info("username          : ${mapMessage["username"]}")
-                    log.info("dockerUsername    : ${mapMessage["dockerUsername"]}")
-                    log.info("prefix            : ${mapMessage["prefix"]}")
-                    log.info("============================================")
-                    boolean success = repositoryManagerThread.repositoryManagers.remove(new SoftwareManager(mapMessage["username"], mapMessage["dockerUsername"], mapMessage["prefix"], mapMessage["id"], Main.buildConnectOpts(null)))
-                    log.info("SoftwareManager removed : ${success}")
-                    break
                 case "refreshSoftwareUserRepositoryList":
                     log.info("[Communication] Re-fetch software user repositories, it has changed")
                     sleep(3000)

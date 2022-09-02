@@ -66,7 +66,7 @@ class SingleSoftwareManager extends AbstractSoftwareManager {
             sources.traverse(type: groovy.io.FileType.FILES) {
                 if(it.name == "Dockerfile") dockerOrigin = it
             }
-            return 'docker build -t '+interpreter.getImageName() + ':' + release+' '+dockerOrigin.parentFile.absolutePath+' && singularity pull --name ' + imageName + '.simg docker-daemon://' +
+            return 'docker build -t '+interpreter.getImageName() + ':' + release+' '+dockerOrigin.parentFile.absolutePath+' && singularity build ' + imageName + '.simg docker-daemon://' +
                     interpreter.getImageName() + ':' + release as String
         }
 

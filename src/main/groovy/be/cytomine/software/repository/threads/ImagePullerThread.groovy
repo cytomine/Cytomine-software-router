@@ -58,6 +58,7 @@ class ImagePullerThread implements Runnable {
         if (process.exitValue() == 0) {
             log.info("The image [${imageName}] has successfully been pulled !")
             def movingProcess = Utils.executeProcess("mv ${imageName} ${Main.configFile.cytomine.software.path.softwareImages}", ".", getEnv())
+            log.info("mv process response ${movingProcess.exitValue()}")
             if (movingProcess.exitValue() == 0) {
                 log.info("The image [${imageName}] has successfully been moved !")
             } else {

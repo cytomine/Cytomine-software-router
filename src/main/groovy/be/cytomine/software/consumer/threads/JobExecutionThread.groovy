@@ -62,8 +62,15 @@ class JobExecutionThread implements Runnable {
     }
 
     def getImageName() {
-        def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
-        return temp.substring(0, temp.indexOf(" "))
+        // singularity build barplot-with-thresholds-v0.0.1.simg docker-archive:/data/softwares/images/MHRIHJDXJKWSD/image.tar
+        log.info("PullingCommand ${pullingCommand}")
+        if (pullingCommand.startsWith("singularity build")) {
+            def temp = pullingCommand.substring(pullingCommand.indexOf("build") + "build ".size(), pullingCommand.size())
+            return temp.substring(0, temp.indexOf(" "))
+        } else {
+            def temp = pullingCommand.substring(pullingCommand.indexOf("--name ") + "--name ".size(), pullingCommand.size())
+            return temp.substring(0, temp.indexOf(" "))
+        }
     }
 
     @Override
@@ -73,6 +80,7 @@ class JobExecutionThread implements Runnable {
 
             log.info("${logPrefix()} Try to find image... ")
             def imageName = getImageName()
+            log.info("imageName = $imageName")
             // 1) The image is being pulled.
             def wasPulling = false
             def start = System.currentTimeSeconds()
@@ -95,6 +103,7 @@ class JobExecutionThread implements Runnable {
             }
 
             def imageExists = new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}").exists()
+            log.info("${new File("${Main.configFile.cytomine.software.path.softwareImages}/${imageName}")}")
             def status
             if (!imageExists) {
                 // 2) if image was being pulled but not exist at the end: error

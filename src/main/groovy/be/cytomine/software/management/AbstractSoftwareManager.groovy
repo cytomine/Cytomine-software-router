@@ -95,7 +95,7 @@ abstract class AbstractSoftwareManager {
         }
 
         if (software.description?.trim()) {
-            new Description("Software",resultSoftware.getId(), software.description as String).save()
+            new Description("be.cytomine.processing.Software", resultSoftware.getId(), software.description as String).save()
         }
 
         // Load constraints
@@ -129,7 +129,7 @@ abstract class AbstractSoftwareManager {
             // Add the description
             log.info("Add the argument description")
             if (element.description?.trim()) {
-                new Description("SoftwareParameter",resultSoftwareParameter.getId(), element.description as String).save()
+                new Description("be.cytomine.processing.SoftwareParameter", resultSoftwareParameter.getId(), element.description as String).save()
             }
 
             // Add the constraints

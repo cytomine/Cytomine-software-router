@@ -30,13 +30,13 @@ import be.cytomine.software.consumer.Main
 import be.cytomine.software.consumer.threads.SRThreadFactory
 import be.cytomine.software.exceptions.BoutiquesException
 import be.cytomine.software.repository.threads.ImagePullerThread
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 import org.kohsuke.github.GHFileNotFoundException
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@Log4j
+@Log4j2
 class SoftwareManager {
 
     def prefixes = [:]

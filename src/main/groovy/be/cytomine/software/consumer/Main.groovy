@@ -33,13 +33,12 @@ import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import groovy.json.JsonSlurper
-import groovy.util.logging.Log4j
-import org.apache.log4j.PropertyConfigurator
+import groovy.util.logging.Log4j2
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@Log4j
+@Log4j2
 class Main {
 
     static def configFile
@@ -59,8 +58,6 @@ class Main {
     static def pendingPullingTable = []
 
     static void main(String[] args) {
-        PropertyConfigurator.configure("log4j.properties");
-
         log.info("PATH : ${System.getenv("PATH")}")
 
         flattenConfig(configFile).each {String k, v ->

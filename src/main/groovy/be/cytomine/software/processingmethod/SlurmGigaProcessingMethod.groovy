@@ -18,9 +18,9 @@ package be.cytomine.software.processingmethod
 
 import be.cytomine.software.consumer.Main
 import com.jcraft.jsch.JSchException
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 
-@Log4j
+@Log4j2
 class SlurmGigaProcessingMethod extends SlurmProcessingMethod {
 
     @Override

@@ -20,9 +20,9 @@ import be.cytomine.client.CytomineException
 import be.cytomine.client.collections.Collection
 import be.cytomine.client.models.*
 import be.cytomine.software.boutiques.Interpreter
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 
-@Log4j
+@Log4j2
 abstract class AbstractSoftwareManager {
 
     String release

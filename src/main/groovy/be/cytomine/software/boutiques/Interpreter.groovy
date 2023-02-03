@@ -20,9 +20,9 @@ import be.cytomine.client.collections.Collection
 import be.cytomine.client.models.ProcessingServer
 import be.cytomine.software.exceptions.BoutiquesException
 import groovy.json.JsonSlurper
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 
-@Log4j
+@Log4j2
 class Interpreter {
 
     private final int BASE_INDEX = 100

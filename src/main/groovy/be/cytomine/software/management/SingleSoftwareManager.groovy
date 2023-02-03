@@ -18,10 +18,10 @@ package be.cytomine.software.management
 import be.cytomine.software.boutiques.Interpreter
 import be.cytomine.software.consumer.Main
 import be.cytomine.software.util.Utils
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 import org.apache.commons.lang.RandomStringUtils
 
-@Log4j
+@Log4j2
 class SingleSoftwareManager extends AbstractSoftwareManager {
 
     File origin

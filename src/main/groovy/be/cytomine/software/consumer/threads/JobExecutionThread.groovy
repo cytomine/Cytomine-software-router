@@ -21,12 +21,12 @@ import be.cytomine.client.Cytomine
 import be.cytomine.software.consumer.Main
 import be.cytomine.software.processingmethod.AbstractProcessingMethod
 import be.cytomine.software.repository.threads.ImagePullerThread
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 import be.cytomine.client.CytomineException
 import be.cytomine.client.models.Job
 import be.cytomine.client.models.AttachedFile
 
-@Log4j
+@Log4j2
 class JobExecutionThread implements Runnable {
     private final DEFAULT_LOG_REFRESH_RATE = 15
     private final int DEFAULT_PULLING_REFRESH_RATE = 20

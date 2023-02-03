@@ -18,9 +18,9 @@ package be.cytomine.software.management
 
 import be.cytomine.software.boutiques.Interpreter
 import be.cytomine.software.repository.GitHubManager
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 
-@Log4j
+@Log4j2
 class GitHubSoftwareManager extends AbstractSoftwareManager {
 
     GitHubManager gitHubManager

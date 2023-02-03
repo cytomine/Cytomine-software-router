@@ -26,11 +26,11 @@ import be.cytomine.software.processingmethod.AbstractProcessingMethod
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.QueueingConsumer
 import groovy.json.JsonSlurper
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@Log4j
+@Log4j2
 class ProcessingServerThread implements Runnable {
     private Channel channel
     private AbstractProcessingMethod processingMethod

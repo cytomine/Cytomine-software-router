@@ -21,9 +21,9 @@ import com.jcraft.jsch.ChannelExec
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 
-@Log4j
+@Log4j2
 class SSH implements Communication {
 
     String user

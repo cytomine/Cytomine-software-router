@@ -17,12 +17,12 @@ package be.cytomine.software.repository
  */
 
 import be.cytomine.software.consumer.Main
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 import org.kohsuke.github.*
 
 import java.nio.channels.Channels
 
-@Log4j
+@Log4j2
 class GitHubManager extends AbstractRepositoryManager {
 
     private GitHub gitHub

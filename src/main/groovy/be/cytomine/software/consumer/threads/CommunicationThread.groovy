@@ -27,14 +27,14 @@ import be.cytomine.software.util.Utils
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.QueueingConsumer
 import groovy.json.JsonSlurper
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@Log4j
+@Log4j2
 class CommunicationThread implements Runnable {
 
     RepositoryManagerThread repositoryManagerThread

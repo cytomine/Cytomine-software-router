@@ -18,9 +18,9 @@ package be.cytomine.software.repository.threads
 
 import be.cytomine.software.consumer.Main
 import be.cytomine.software.repository.SoftwareManager
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 
-@Log4j
+@Log4j2
 class RepositoryManagerThread implements Runnable {
 
     private final DEFAULT_REFRESH_RATE = 300

@@ -16,9 +16,9 @@ package be.cytomine.software.util
  * limitations under the License.
  */
 
-import groovy.util.logging.Log4j
+import groovy.util.logging.Log4j2
 
-@Log4j
+@Log4j2
 class Utils {
     static String getImageNameFromCommand(String command) {
         def imageName
